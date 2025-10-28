@@ -1,0 +1,255 @@
+{
+	"models": {
+
+		"obstacle": {
+			"kind": "rigidBody",
+			"centerOfMass": [ 0, 0, 0 ],
+			"mass": 4,
+			"inertia": { "ixx": 5, "iyy": 6, "izz": 7 },
+			"shapes": {
+				"sphere": {
+					"kind": "sphere",
+					"center": [ 0, 0, 0 ],
+					"radius": 0.1
+				}
+			}
+		},
+
+		"ur5e": {
+			"kind": "robot",
+			"links": {
+				"base": {
+					"parent": "ROOT",
+					"pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+					"parts": [ "baseCollision" ]
+				},
+				"shoulder": {
+					"parent": "base",
+					"pose": { "dh": { "theta": { "joint": "base" }, "a": 0, "s": 0.1625, "alpha": 1.57079632679 } }
+				},
+				"upperArm": {
+					"parent": "shoulder",
+					"pose": { "dh": { "theta": { "joint": "shoulder" }, "a": -0.425, "s": 0, "alpha": 0 } },
+					"parts": [ "upperArmCollision" ]
+				},
+				"forearm": {
+					"parent": "upperArm",
+					"pose": { "dh": { "theta": { "joint": "elbow" }, "a": -0.3922, "s": 0, "alpha": 0 } },
+					"parts": [ "forearmCollision" ]
+				},
+				"wrist1": {
+					"parent": "forearm",
+					"pose": { "dh": { "theta": { "joint": "wrist1" }, "a": 0, "s": 0.1333, "alpha": 1.57079632679 } },
+					"parts": [ "wrist1Collision" ]
+				},
+				"wrist2": {
+					"parent": "wrist1",
+					"pose": { "dh": { "theta": { "joint": "wrist2" }, "a": 0, "s": 0.0997, "alpha": -1.57079632679 } },
+					"parts": [ "wrist2Collision" ]
+				},
+				"wrist3": {
+					"parent": "wrist2",
+					"pose": { "dh": { "theta": { "joint": "wrist3" }, "a": 0, "s": 0.0996, "alpha": 0 } },
+					"parts": [ "wrist3Collision" ]
+				}
+			},
+			"partModels": {
+				"baseCollision": { "shapes": {
+						"base": {
+							"kind": "orangeNet",
+							"points": [ [ 0, 0, 0 ], [ 0, 0, 0.18 ] ],
+							"radius": 0.078
+						}
+					} },
+				"upperArmCollision": { "shapes": {
+						"shoulder": {
+							"kind": "orangeNet",
+							"points": [ [ 0.425, 0, 0 ], [ 0.417, 0, 0.16 ] ],
+							"radius": 0.07
+						},
+						"upperArm": {
+							"kind": "orangeNet",
+							"points": [ [ 0.425, 0, 0.138 ], [ 0, 0, 0.138 ] ],
+							"radius": 0.07
+						},
+						"elbow": {
+							"kind": "orangeNet",
+							"points": [ [ 0.008, 0, 0.16 ], [ 0, 0, 0.03 ] ],
+							"radius": 0.07
+						}
+					} },
+				"forearmCollision": { "shapes": {
+						"forearm": {
+							"kind": "orangeNet",
+							"points": [ [ 0.367, 0, 0.007 ], [ 0, 0, 0.007 ] ],
+							"radius": 0.05
+						},
+						"forearmToWrist": {
+							"kind": "orangeNet",
+							"points": [ [ 0, 0, -0.023 ], [ 0, 0, 0.133 ] ],
+							"radius": 0.043
+						}
+					} },
+				"wrist1Collision": { "shapes": {
+						"wrist1": {
+							"kind": "orangeNet",
+							"points": [ [ 0, -0.002, -0.028 ], [ 0, 0, 0.1 ] ],
+							"radius": 0.043
+						}
+					} },
+				"wrist2Collision": { "shapes": {
+						"wrist2": {
+							"kind": "orangeNet",
+							"points": [ [ 0, 0.002, -0.024 ], [ 0, 0, 0.027 ] ],
+							"radius": 0.045
+						}
+					} },
+				"wrist3Collision": { "shapes": {
+						"wrist3": {
+							"kind": "orangeNet",
+							"points": [ [ 0, 0, -0.031 ] ],
+							"radius": 0.045
+						}
+					} }
+			},
+
+			"joints": {
+				"base": {
+					"minValue": -3.14159265359,
+					"maxValue": 3.14159265359,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				},
+				"shoulder": {
+					"minValue": -3.14159265359,
+					"maxValue": 3.14159265359,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				},
+				"elbow": {
+					"minValue": -3.14159265359,
+					"maxValue": 3.14159265359,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				},
+				"wrist1": {
+					"minValue": -3.14159265359,
+					"maxValue": 3.14159265359,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				},
+				"wrist2": {
+					"minValue": -3.14159265359,
+					"maxValue": 3.14159265359,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				},
+				"wrist3": {
+					"minValue": -3.14159265359,
+					"maxValue": 3.14159265359,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				}
+			},
+			"collisionIgnoreGroups": {
+				"shoulder": [ "base", "upperArm" ],
+				"armParts": [ "upperArm", "forearm" ],
+				"wrist1": [ "forearm", "wrist1", "wrist2" ],
+				"wrist2": [ "wrist1", "wrist2", "wrist3" ]
+			},
+			"constraints": { },
+			"visuals": "../../models/ur5e.glb"
+		}
+	},
+
+	"objects": {
+		"robot1": {
+			"model": "ur5e",
+			"parent": "WORLD",
+			"pose": { "xyz": [ -0.5, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+			"jointValues": {
+				"base": 0.1,
+				"shoulder": 0.2,
+				"elbow": 0.3,
+				"wrist1": 0.4,
+				"wrist2": 0.5,
+				"wrist3": 0.6
+			}
+		},
+		"robot2": {
+			"model": "ur5e",
+			"parent": "WORLD",
+			"pose": { "xyz": [ 0.5, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+			"jointValues": {
+				"base": 0.1,
+				"shoulder": 0.2,
+				"elbow": 0.3,
+				"wrist1": 0.4,
+				"wrist2": 0.5,
+				"wrist3": 0.6
+			}
+		},
+		"obstacle1": {
+			"parent": "WORLD",
+			"pose": { "xyz": [ -0.5, -0.5, 0.5 ], "qxyzw": [ 0, 0, 0, 1 ] },
+			"model": "obstacle"
+		},
+		"obstacle2": {
+			"parent": "WORLD",
+			"pose": { "xyz": [ 0.5, -0.5, 0.5 ], "qxyzw": [ 0, 0, 0, 1 ] },
+			"model": "obstacle"
+		},
+		"obstacle3": {
+			"parent": "WORLD",
+			"pose": { "xyz": [ -0.5, 0.5, 0.5 ], "qxyzw": [ 0, 0, 0, 1 ] },
+			"model": "obstacle"
+		},
+		"obstacle4": {
+			"parent": "WORLD",
+			"pose": { "xyz": [ 0.5, 0.5, 0.5 ], "qxyzw": [ 0, 0, 0, 1 ] },
+			"model": "obstacle"
+		}
+	},
+
+	"collisionIgnoreGroups": {
+		"7": [ "robot1", "robot2.base" ]
+	},
+
+	"trajectories": {
+		"oscillation": {
+			"controlPoints": [
+				{ "f": 1, "df": 0 },
+				{ "f": -1, "df": 0 }
+			],
+			"dtDefault": 0.5,
+			"repeat": true
+		},
+		"wobble": {
+			"controlPoints": [
+				{ "t": 0, "f": [ 1, 0, 0, 0, 0, 0, 1 ], "df": [ 0, 0, 0, 0, 0, 0, 0 ] },
+				{ "t": 1, "f": [ -1, 0, 0, 0, 0, -1, 0 ], "df": [ 0, 0, 0, 0, 0, 0, 0 ] }
+			],
+			"dtDefault": 0.0,
+			"repeat": true
+		}
+	}
+
+}

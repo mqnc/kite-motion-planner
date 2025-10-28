@@ -1,0 +1,516 @@
+{
+	"$schema": "https://json-schema.org/draft/t2020-12/schema",
+	"$ref": "#/$defs/Scene",
+
+	"$defs": {
+
+		"Scene": {
+			"type": "object",
+			"properties": {
+				"models": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Model" }
+					}
+				},
+				"objects": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Object" }
+					}
+				},
+				"collisionIgnoreGroups": {
+					"type": "object",
+					"patternProperties": {
+						"": {
+							"type": "array",
+							"items": { "type": "string" }
+						}
+					}
+				},
+				"trajectories": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Trajectory" }
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+
+
+		"Model": {
+			"properties": {
+				"kind": { "type": "string" }
+			},
+			"oneOf": [
+				{ "$ref": "#/$defs/RobotModel" },
+				{ "$ref": "#/$defs/RigidBodyModel" }
+			],
+			"required": [ "kind" ]
+		},
+
+
+		"Object": {
+			"type": "object",
+			"properties": {
+				"model": { "type": "string" },
+				"parent": { "type": "string", "default": "WORLD" },
+				"pose": { "$ref": "#/$defs/Trafo" },
+				"jointValues": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Value" }
+					}
+				}
+			},
+			"required": [ "model", "parent" ],
+			"additionalProperties": false
+		},
+
+
+		"RobotModel": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "robot" },
+				"links": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Link" }
+					}
+				},
+				"partModels": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/RigidBodyModel" }
+					}
+				},
+				"joints": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Joint" }
+					}
+				},
+				"collisionIgnoreGroups": {
+					"type": "object",
+					"patternProperties": {
+						"": {
+							"type": "array",
+							"items": { "type": "string" }
+						}
+					}
+				},
+				"constraints": {
+					"type": "object",
+					"patternProperties": {
+						"": {
+							"type": "object",
+							"patternProperties": {
+								"": { "type": "number" }
+							}
+						}
+					}
+				},
+				"visuals": { "type": "string" }
+			},
+			"required": [ "links" ],
+			"additionalProperties": false
+		},
+
+
+		"Joint": {
+			"type": "object",
+			"properties": {
+				"minValue": { "type": "number" },
+				"maxValue": { "type": "number" },
+				"maxVelocity": { "type": "number" },
+				"maxAcceleration": { "type": "number" },
+				"maxDeceleration": { "type": "number" },
+				"maxJerk": { "type": "number" },
+				"maxEffort": { "type": "number" }
+			},
+			"additionalProperties": false
+		},
+
+
+		"Link": {
+			"type": "object",
+			"properties": {
+				"parent": { "type": "string" },
+				"pose": { "$ref": "#/$defs/Trafo" },
+				"parts": {
+					"type": "array",
+					"items": { "type": "string" }
+				}
+			},
+			"required": [ "parent" ],
+			"additionalProperties": false
+		},
+
+
+		"RigidBodyModel": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "rigidBody" },
+				"centerOfMass": { "$ref": "#/$defs/Vector3" },
+				"mass": { "type": "number", "default": 0 },
+				"inertia": {
+					"type": "object",
+					"properties": {
+						"ixx": { "type": "number", "default": 0 },
+						"iyy": { "type": "number", "default": 0 },
+						"izz": { "type": "number", "default": 0 },
+						"ixy": { "type": "number", "default": 0 },
+						"ixz": { "type": "number", "default": 0 },
+						"iyz": { "type": "number", "default": 0 }
+					},
+					"additionalProperties": false
+				},
+				"shapes": {
+					"type": "object",
+					"patternProperties": {
+						"": { "$ref": "#/$defs/Shape" }
+					}
+				},
+				"visuals": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+
+
+		"Shape": {
+			"oneOf": [
+				{ "$ref": "#/$defs/Sphere" },
+				{ "$ref": "#/$defs/Box" },
+				{ "$ref": "#/$defs/Cylinder" },
+				{ "$ref": "#/$defs/OrangeNet" },
+				{ "$ref": "#/$defs/Mesh" }
+			],
+			"properties": {
+				"margin": { "type": "number" },
+				"collides": { "type": "boolean", "default": true },
+				"stickyForce": { "type": "number" },
+				"visuals": { "type": "object" }
+			},
+			"unevaluatedProperties": false
+		},
+
+
+		"Sphere": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "sphere" },
+				"center": { "$ref": "#/$defs/Vector3" },
+				"radius": { "kind": "number" }
+			},
+			"required": [ "kind", "radius" ]
+		},
+
+
+		"Box": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "box" },
+				"pose": { "$ref": "#/$defs/Trafo" },
+				"size": { "$ref": "#/$defs/Vector3" }
+			},
+			"required": [ "kind", "size" ]
+		},
+
+
+		"Cylinder": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "cylinder" },
+				"center": { "$ref": "#/$defs/Vector3" },
+				"radius": { "type": "number" },
+				"height": { "type": "number" },
+				"axis": {
+					"oneOf": [
+						{ "type": "string", "enum": [ "x", "y", "z" ] },
+						{ "$ref": "#/$defs/Vector3" }
+					]
+				}
+			},
+			"required": [ "kind", "radius", "height", "axis" ]
+		},
+
+
+		"OrangeNet": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "orangeNet" },
+				"points": { "$ref": "#/$defs/Vector3Array" },
+				"radius": { "type": "number" }
+			},
+			"required": [ "kind", "points", "radius" ]
+		},
+
+
+		"Mesh": {
+			"type": "object",
+			"properties": {
+				"kind": { "const": "mesh" },
+				"vertices": { "$ref": "#/$defs/Vector3Array" },
+				"faces": { "$ref": "#/$defs/UIntVector3Array" }
+			},
+			"required": [ "kind", "vertices", "faces" ]
+		},
+
+
+		"Trafo": {
+			"type": "object",
+			"default": { "xyz": [ 0, 0, 0 ], "euler": { "z0y1x2": [ 0, 0, 0 ] } },
+			"properties": {
+				"xyz": { "$ref": "#/$defs/Values3" },
+				"axisDistance": { "$ref": "#/$defs/AxisDistance" },
+				"qwxyz": { "$ref": "#/$defs/Quat" },
+				"qxyzw": { "$ref": "#/$defs/Quat" },
+				"cols3x3": { "$ref": "#/$defs/Matrix3x3" },
+				"rows3x3": { "$ref": "#/$defs/Matrix3x3" },
+				"cols4x4": { "$ref": "#/$defs/Matrix4x4" },
+				"rows4x4": { "$ref": "#/$defs/Matrix4x4" },
+				"euler": { "$ref": "#/$defs/Euler" },
+				"axisAngle": { "$ref": "#/$defs/AxisAngle" },
+				"rotvec": { "$ref": "#/$defs/Values3" },
+				"dh": { "$ref": "#/$defs/DH" }
+			},
+			"oneOf": [
+				{ "required": [ "xyz", "qwxyz" ], "maxProperties": 2 },
+				{ "required": [ "xyz", "qxyzw" ], "maxProperties": 2 },
+				{ "required": [ "xyz", "cols3x3" ], "maxProperties": 2 },
+				{ "required": [ "xyz", "rows3x3" ], "maxProperties": 2 },
+				{ "required": [ "xyz", "euler" ], "maxProperties": 2 },
+				{ "required": [ "xyz", "axisAngle" ], "maxProperties": 2 },
+				{ "required": [ "xyz", "rotvec" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "qwxyz" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "qxyzw" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "cols3x3" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "rows3x3" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "euler" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "axisAngle" ], "maxProperties": 2 },
+				{ "required": [ "axisDistance", "rotvec" ], "maxProperties": 2 },
+				{ "required": [ "cols4x4" ], "maxProperties": 1 },
+				{ "required": [ "rows4x4" ], "maxProperties": 1 },
+				{ "required": [ "dh" ], "maxProperties": 1 }
+			]
+		},
+
+		"JointReference": {
+			"type": "object",
+			"properties": {
+				"joint": { "type": "string" }
+			},
+			"required": [ "joint" ],
+			"additionalProperties": false
+		},
+
+		"TrajectoryReference": {
+			"type": "object",
+			"properties": {
+				"trajectory": { "type": "string" },
+				"index": { "type": "number" }
+			},
+			"required": [ "trajectory" ],
+			"additionalProperties": false
+		},
+
+		"Reference": {
+			"oneOf": [
+				{ "$ref": "#/$defs/JointReference" },
+				{ "$ref": "#/$defs/TrajectoryReference" }
+			]
+		},
+
+		"Value": {
+			"oneOf": [
+				{ "type": [ "number", "string" ], "default": 0 },
+				{ "$ref": "#/$defs/Reference" }
+			]
+		},
+
+		"Values3": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/Value" },
+			"minItems": 3,
+			"maxItems": 3
+		},
+
+		"NumberOrVector": {
+			"oneOf": [
+				{ "type": "number" },
+				{ "$ref": "#/$defs/Vector" }
+			]
+		},
+
+		"Vector": {
+			"type": "array",
+			"items": { "type": "number" }
+		},
+
+		"Vector3": {
+			"type": "array",
+			"items": { "type": "number", "default": 0 },
+			"minItems": 3,
+			"maxItems": 3
+		},
+
+		"Vector3Array": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/Vector3" }
+		},
+
+		"UIntVector3": {
+			"type": "array",
+			"items": { "type": "integer", "minimum": 0 },
+			"minItems": 3,
+			"maxItems": 3
+		},
+
+		"UIntVector3Array": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/UIntVector3" }
+		},
+
+		"Vector4": {
+			"type": "array",
+			"items": { "type": "number" },
+			"minItems": 4,
+			"maxItems": 4
+		},
+
+		"Quat": {
+			"oneOf": [
+				{ "$ref": "#/$defs/Vector4" },
+				{ "type": "string" }
+			]
+		},
+
+		"Matrix3x3": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/Vector3" },
+			"minItems": 3,
+			"maxItems": 3
+		},
+
+		"Matrix4x4": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/Vector4" },
+			"minItems": 4,
+			"maxItems": 4
+		},
+
+		"Euler": {
+			"type": "object",
+			"properties": {
+				"z0x0z0": { "$ref": "#/$defs/Values3" },
+				"x0y0x0": { "$ref": "#/$defs/Values3" },
+				"y0z0y0": { "$ref": "#/$defs/Values3" },
+				"z0y0z0": { "$ref": "#/$defs/Values3" },
+				"x0z0x0": { "$ref": "#/$defs/Values3" },
+				"y0x0y0": { "$ref": "#/$defs/Values3" },
+				"x0y0z0": { "$ref": "#/$defs/Values3" },
+				"y0z0x0": { "$ref": "#/$defs/Values3" },
+				"z0x0y0": { "$ref": "#/$defs/Values3" },
+				"x0z0y0": { "$ref": "#/$defs/Values3" },
+				"z0y0x0": { "$ref": "#/$defs/Values3" },
+				"y0x0z0": { "$ref": "#/$defs/Values3" },
+				"z0x1z2": { "$ref": "#/$defs/Values3" },
+				"x0y1x2": { "$ref": "#/$defs/Values3" },
+				"y0z1y2": { "$ref": "#/$defs/Values3" },
+				"z0y1z2": { "$ref": "#/$defs/Values3" },
+				"x0z1x2": { "$ref": "#/$defs/Values3" },
+				"y0x1y2": { "$ref": "#/$defs/Values3" },
+				"x0y1z2": { "$ref": "#/$defs/Values3" },
+				"y0z1x2": { "$ref": "#/$defs/Values3" },
+				"z0x1y2": { "$ref": "#/$defs/Values3" },
+				"x0z1y2": { "$ref": "#/$defs/Values3" },
+				"z0y1x2": { "$ref": "#/$defs/Values3" },
+				"y0x1z2": { "$ref": "#/$defs/Values3" }
+			},
+			"minProperties": 1,
+			"maxProperties": 1,
+			"additionalProperties": false
+		},
+
+		"AxisDistance": {
+			"type": "object",
+			"properties": {
+				"axis": { "$ref": "#/$defs/Vector3" },
+				"distance": { "$ref": "#/$defs/Value" }
+			},
+			"required": [ "axis", "distance" ],
+			"additionalProperties": false
+		},
+
+		"AxisAngle": {
+			"type": "object",
+			"properties": {
+				"axis": { "$ref": "#/$defs/Vector3" },
+				"angle": { "$ref": "#/$defs/Value" }
+			},
+			"required": [ "axis", "angle" ],
+			"additionalProperties": false
+		},
+
+		"DH": {
+			"type": "object",
+			"properties": {
+				"a": { "$ref": "#/$defs/Value" },
+				"alpha": { "$ref": "#/$defs/Value" },
+				"theta": { "$ref": "#/$defs/Value" },
+				"s": { "$ref": "#/$defs/Value" }
+			},
+			"required": [ "a", "alpha", "theta", "s" ],
+			"additionalProperties": false
+		},
+
+		"Trajectory": {
+			"type": "object",
+			"properties": {
+				"controlPoints": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/ControlPoint" }
+				},
+				"dtDefault": { "type": "number", "default": 1.0 },
+				"repeat": { "$ref": "#/$defs/Repetition" }
+			},
+			"required": [ "controlPoints" ],
+			"additionalProperties": false
+		},
+
+		"ControlPoint": {
+			"type": "object",
+			"properties": {
+				"t": { "type": "number" },
+				"dt": { "type": "number" },
+				"f": { "$ref": "#/$defs/NumberOrVector" },
+				"df": { "$ref": "#/$defs/NumberOrVector" },
+				"ddf": { "$ref": "#/$defs/NumberOrVector" }
+			},
+			"oneOf": [
+				{ "required": [ "f" ], "not": { "required": [ "dt" ] } },
+				{ "required": [ "f" ], "not": { "required": [ "t" ] } }
+			],
+			"additionalProperties": false
+		},
+
+		"Repetition": {
+			"oneOf": [
+				{ "type": "boolean" },
+				{
+					"type": "object",
+					"properties": {
+						"t": { "type": "number" },
+						"dt": { "type": "number" }
+					},
+					"oneOf": [
+						{ "required": [ "t" ], "not": { "required": [ "dt" ] } },
+						{ "required": [ "dt" ], "not": { "required": [ "t" ] } }
+					],
+					"additionalProperties": false
+				}
+			]
+		}
+	}
+}

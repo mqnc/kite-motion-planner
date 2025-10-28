@@ -1,0 +1,79 @@
+
+// this sampler returns predefined suggestions first and also every some samples
+template <typename T>
+class BiasedSampler: public T {
+	const ob::StateSpace* space_;
+	size_t callCounter = 0;
+	Path suggestions;
+	size_t suggestionInterval = 15;
+
+public:
+	template <typename... Args>
+	BiasedSampler(
+		const ob::StateSpace* space,
+		Path suggestions,
+		size_t suggestionInterval,
+		Args&&... args
+		):
+		T(space, std::forward<Args>(args)...),
+		space_ {space},
+		suggestions {suggestions},
+		suggestionInterval {suggestionInterval} {}
+
+	void sampleUniform(ob::State* state) {
+		int suggest = -1;
+		if (callCounter < suggestions.size()) {
+			suggest = callCounter;
+		}
+		else if (suggestions.size() > 0 && callCounter % suggestionInterval == 0) {
+			suggest = (callCounter / suggestionInterval - 1) % suggestions.size();
+		}
+
+		if (suggest != -1) {
+			const unsigned int dim = space_->getDimension();
+			auto* rstate = static_cast<typename ob::RealVectorStateSpace::StateType*>(state);
+			for (unsigned int i = 0; i < dim; ++i) {
+				rstate->values[i] = suggestions[suggest][i];
+			}
+		}
+		else {
+			T::sampleUniform(state);
+		}
+		callCounter++;
+	}
+};
+
+
+
+
+
+
+class AdditiveRecurrenceSequence: public ob::DeterministicSequence {
+	size_t k = 0;
+	valarray<double> s0;
+	valarray<double> alphae;
+public:
+
+	AdditiveRecurrenceSequence(unsigned int dims): DeterministicSequence(dims) {
+		s0.resize(dims);
+		alphae.resize(dims);
+		for (unsigned int i = 0; i < dims; i++) {
+			s0[i] = 0.5;
+			alphae[i] = sqrt(boost::math::prime(i));
+		}
+	}
+	std::vector<double> sample() override {
+		std::vector<double> result(dimensions_);
+		for (unsigned int i = 0; i < dimensions_; i++) {
+			result[i] = std::fmod(s0[i] + k * alphae[i], 1.0);
+		}
+		k++;
+		return result;
+	}
+	void setOffset(valarray<double> s) { s0 = s; }
+	void setIteration(size_t i) { k = i; }
+};
+
+
+	auto randomizer = make_shared<AdditiveRecurrenceSequence>(n);
+	randomizer->setIteration(randomSeed * 1000000);

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+	<meta charset="utf-8">
+	<title>GP2 DEBUG</title>
+	<style>
+		body {
+			margin: 0;
+			font-family: sans-serif;
+			overflow: hidden;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- <div id="drop_zone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+		<p>Drag one or more files to this <i>drop zone</i>.</p>
+	</div> -->
+
+	<div id="status" style="position:absolute; bottom:20px; left:5%; width:90%; text-align:center;"></div>
+
+	<script type="importmap">
+		{"imports": {"three": "./three.module.js"}}
+	</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+		import { OrbitControls } from './OrbitControls.js';
+		import { ConvexGeometry2 } from './ConvexGeometry2.js';
+		import { dragDropInitialize } from "./dragdrop.js"
+		import { jsonToShapeObject, setCoreMaterial, setMarginMaterial } from './shapes.js'
+
+		function traverse(object, callback) {
+			callback(object)
+			for (const child of object.children) {
+				traverse(child, callback)
+			}
+		}
+
+		let scene;
+
+		function clearScene() {
+			scene = new THREE.Scene();
+			window.scene = scene
+			scene.background = new THREE.Color(0xaaccee)
+			const axesHelper1 = new THREE.AxesHelper(1);
+			scene.add(axesHelper1);
+			const axesHelper01 = new THREE.AxesHelper(-0.1);
+			scene.add(axesHelper01);
+		}
+		clearScene()
+
+		const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		const renderer = new THREE.WebGLRenderer();
+
+		window.addEventListener('resize', onWindowResize, false);
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		}
+		onWindowResize()
+
+		document.body.appendChild(renderer.domElement);
+
+		camera.position.set(3, 2, 1)
+		camera.up.set(0, 0, 1)
+		camera.lookAt(0, 0, 0)
+		const controls = new OrbitControls(camera, renderer.domElement);
+
+		const raycaster = new THREE.Raycaster()
+		const pointer = new THREE.Vector2()
+
+		function onPointerMove(event) {
+			pointer.x = (event.clientX / window.innerWidth) * 2 - 1
+			pointer.y = - (event.clientY / window.innerHeight) * 2 + 1
+		}
+
+		window.addEventListener('pointermove', onPointerMove)
+
+		function haveGroupInCommon(groups1, groups2){
+			const commonLength = Math.min(groups1.length, groups2.length)
+			for (let i = 0; i < commonLength; i++) {
+				if (groups1[i] === "1" && groups2[i] === "1") {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function animate() {
+			raycaster.setFromCamera(pointer, camera)
+			const intersects = raycaster.intersectObjects(scene.children)
+
+			document.getElementById("status").innerHTML = ""
+			traverse(scene, (child) => {
+				if (child.userData.isRigidBody && "material" in child) {
+					child.material.color.set(0xffffff)
+				}
+				child.visible = true
+				if ("material" in child) {
+					child.material.opacity = 0.35
+				}
+			})
+
+			for (const x of intersects) {
+				if (x.object.userData.isRigidBody) {
+					document.getElementById("status").innerHTML = x.object.name
+					const globalGroups = x.object.userData.globalGroups
+					const temporaryGroups = x.object.userData.temporaryGroups
+					traverse(scene, (child) => {
+						if (child.userData.isRigidBody && "material" in child) {
+							let r = 0
+							let g = 0
+							let b = 0
+							if (haveGroupInCommon(child.userData.temporaryGroups, temporaryGroups)) { g = 0.5 }
+							if (haveGroupInCommon(child.userData.globalGroups, globalGroups)) { b = 1; g *= 2 }
+							if (g == 0 && b == 0) { r = 1 }
+							child.material.color.set(r, g, b)
+							if (child.name == x.object.name) {
+								child.material.opacity = 1
+							}
+						}
+					})
+					break
+				}
+				else if (x.object.userData.isCollisionMarker) {
+					document.getElementById("status").innerHTML =
+						x.object.userData.collision.objectA + " 💥 "
+						+ x.object.userData.collision.objectB
+
+					traverse(scene, (child) => {
+						if (
+							child.userData.isRigidBody
+							&& child.name == x.object.userData.collision.objectA
+						) {
+							if ("material" in child) { child.material.color.set("orange") }
+						}
+						else if (
+							child.userData.isRigidBody
+							&& child.name == x.object.userData.collision.objectB
+						) {
+							if ("material" in child) { child.material.color.set("magenta") }
+						}
+						else if (child.userData.isRigidBody) {
+							child.visible = false
+						}
+						if (child.userData.isCollisionMarker) {
+							if (child.userData.collision === x.object.userData.collision) {
+								if ("material" in child) { child.material.opacity = 1 }
+							}
+							else { child.visible = false }
+						}
+					})
+					break
+				}
+			}
+
+			requestAnimationFrame(animate);
+			renderer.render(scene, camera);
+		}
+
+		animate();
+
+		let sphereTemplateGeometry = new THREE.IcosahedronGeometry(1, 7)
+		let sphereTemplate = new THREE.Mesh(sphereTemplateGeometry)
+
+
+		const coreMaterial = new THREE.MeshMatcapMaterial({
+			color: 0xffffff,
+			transparent: true
+		});
+		setCoreMaterial(coreMaterial)
+
+		const marginMaterial = new THREE.MeshMatcapMaterial({
+			color: 0xffffff,
+			side: THREE.BackSide,
+			transparent: true
+		});
+		setMarginMaterial(marginMaterial)
+
+
+		function shapeDataToMeshes(data) {
+			switch (data.kind) {
+				case "Compound": {
+					let result = new THREE.Group()
+					for (const child of data.children) {
+						let meshes = shapeDataToMeshes(child.shape)
+						meshes.position.set(...child.trafo.xyz)
+						meshes.quaternion.set(...child.trafo.qxyzw)
+						result.add(meshes)
+					}
+					return result;
+				}
+				case "Box":
+					let box = jsonToShapeObject({
+						kind: "box",
+						size: data.size,
+						margin: data.margin
+					})
+					box.matrixAutoUpdate = true
+					return box
+				case "Sphere": {
+					let result = new THREE.Group()
+					let coreMesh = sphereTemplate.clone()
+					coreMesh.material = coreMaterial.clone()
+					let r = data.radius
+					coreMesh.scale.set(r, r, r)
+					result.add(coreMesh)
+					let marginMesh = sphereTemplate.clone()
+					marginMesh.material = marginMaterial.clone()
+					r = data.radius + data.margin
+					marginMesh.scale.set(r, r, r)
+					result.add(marginMesh)
+					return result;
+				}
+				case "CylinderZ":
+					let cylinder = jsonToShapeObject({
+						kind: "cylinder",
+						radius: data.radius,
+						height: data.height,
+						axis:"z",
+						margin: data.margin
+					})
+					return cylinder
+				case "InflatedConvexHull": {
+					let result = new THREE.Group()
+					let helper = new THREE.Group()
+					for (const p of data.points) {
+						let s = sphereTemplate.clone()
+						s.position.set(p[0], p[1], p[2])
+						const r = data.radius
+						s.scale.set(r, r, r)
+						helper.add(s)
+					}
+					let coreGeometry = new ConvexGeometry2(helper)
+					coreGeometry.computeVertexNormals()
+					let coreMesh = new THREE.Mesh(coreGeometry)
+					coreMesh.material = coreMaterial.clone()
+					result.add(coreMesh)
+					for (const s of helper.children) {
+						const r = data.radius + data.margin
+						s.scale.set(r, r, r)
+					}
+					let marginGeometry = new ConvexGeometry2(helper)
+					let marginMesh = new THREE.Mesh(marginGeometry)
+					marginMesh.material = marginMaterial.clone()
+					result.add(marginMesh)
+					return result;
+				}
+				// case "MultiSphere":
+				// 	break;
+				// case "VisualMesh":
+				// 	break;
+				default:
+					console.error("unknown shape kind: " + data.kind)
+			}
+		}
+
+		function makeCollisionMarker(position) {
+			let marker = new THREE.Group()
+			let geometry = new THREE.ConeGeometry(0.03, 0.3, 3, 1, false)
+			let material = new THREE.MeshMatcapMaterial({
+				color: new THREE.Color(Math.random(), Math.random(), Math.random())
+			});
+			geometry.translate(0, -0.15, 0)
+			let cone = new THREE.Mesh(geometry, material)
+			for (let i = 0; i < 10; i++) {
+				let ray = cone.clone()
+				ray.rotation.set(Math.random() * 500, Math.random() * 500, Math.random() * 500)
+				marker.add(ray)
+			}
+			marker.position.set(...position)
+			return marker
+		}
+
+		function loadFile(json) {
+			clearScene()
+
+			for (const obj of json.scene) {
+				let meshes = shapeDataToMeshes(obj.shape)
+				meshes.position.set(...obj.trafo.xyz)
+				meshes.quaternion.set(...obj.trafo.qxyzw)
+				traverse(meshes, (child) => {
+					child.name = obj.name
+					child.userData.isRigidBody = true
+					child.userData.globalGroups = obj.globalGroups
+					child.userData.temporaryGroups = obj.temporaryGroups
+				})
+				scene.add(meshes)
+			}
+			for (const col of json.collisions) {
+				let marker = makeCollisionMarker(col.pointOnA)
+				traverse(marker, (child) => {
+					child.userData.isCollisionMarker = true
+					child.userData.collision = col
+				})
+
+				scene.add(marker)
+			}
+
+		}
+
+		dragDropInitialize(document.body, (content) => { loadFile(JSON.parse(content)) })
+
+
+	</script>
+
+</body>
+
+</html>

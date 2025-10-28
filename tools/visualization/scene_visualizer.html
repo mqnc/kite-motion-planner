@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+	<meta charset="utf-8">
+	<title>GP2 SCENE</title>
+	<style>
+		body {
+			margin: 0;
+			font-family: sans-serif;
+			overflow: hidden;
+		}
+
+		button {
+			width: 3em;
+			height: 4ex;
+		}
+	</style>
+</head>
+
+<body>
+
+	<table style="position:absolute; bottom:3%; left:3%; width:94%;">
+		<tr>
+			<td>
+				<input style="width:100%" type="range" min="0" max="1" value="0" step="0.00001" id="slider">
+			</td>
+		</tr>
+		<tr>
+			<td style="text-align: center;">
+				<button id="toStart">▮◀</button>
+				<button id="playBackwards">◀</button>
+				<button id="pause">▮▮</button>
+				<button id="play">▶</button>
+				<span id="timeDisplay" style="display:inline-block; width:5em;">0</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<button id="slowDown">🐢</button>
+				<button id="resetSpeed">🕑</button>
+				<button id="speedUp">🐇</button>
+				<span id="speedDisplay" style="display:inline-block; width:4em;">1</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<button id="lastTrace">⬅️</button>✏️<button id="nextTrace">➡️</button>
+			</td>
+		</tr>
+	</table>
+
+
+
+	<script type="importmap">
+		{"imports": {"three": "./three.module.js"}}
+	</script>
+
+	<script type="module">
+
+		import * as THREE from 'three'
+		import { OrbitControls } from './OrbitControls.js'
+		import { dragDropInitialize } from "./dragdrop.js"
+
+		import { checkFields, Referenceable } from "./utils.js"
+
+		import { jsonToTrajectoryReferenceables } from "./trajectory.js"
+		import { jsonToDynamicMatrix, jsonToRegisteredReference, jsonToVector } from "./trafo.js"
+		import { jsonToShapeObject } from "./shapes.js"
+		import { loadVisuals } from "./visuals.js"
+
+		const WORLD_ID = "WORLD"
+		const ROOT_ID = "ROOT"
+
+		let globalScene
+		let updateTrajectories = (t) => { }
+
+
+		let globalSimTime = 0
+		let globalProgressSpeedLevel = 0
+		let globalPlayingDirection = 0
+		function calcSpeed() { return Math.pow(10, globalProgressSpeedLevel / 5) }
+		document.getElementById("slider").addEventListener("input", () => {
+			let q = Number.parseFloat(document.getElementById("slider").value)
+			globalSimTime = q == 1 ? 3600 : -Math.log(1 - q) * 60
+			globalPlayingDirection = 0
+		})
+		document.getElementById("toStart").addEventListener("click", () => { resetTime() })
+		document.getElementById("playBackwards").addEventListener("click", () => { globalPlayingDirection = -1 })
+		document.getElementById("pause").addEventListener("click", () => { globalPlayingDirection = 0 })
+		document.getElementById("play").addEventListener("click", () => { globalPlayingDirection = 1 })
+		document.getElementById("slowDown").addEventListener("click", () => { globalProgressSpeedLevel-- })
+		document.getElementById("resetSpeed").addEventListener("click", () => { globalProgressSpeedLevel = 0 })
+		document.getElementById("speedUp").addEventListener("click", () => { globalProgressSpeedLevel++ })
+
+		function resetTime() {
+			globalSimTime = 0; globalPlayingDirection = 0
+		}
+
+		let lastTimeStamp = undefined
+		function updateTimer(timeStamp) {
+			let dt = lastTimeStamp === undefined ? 0 : (timeStamp - lastTimeStamp) / 1000
+			lastTimeStamp = timeStamp
+			if (dt > 0.1) { dt = 0.1 }
+			globalSimTime += globalPlayingDirection * calcSpeed() * dt
+			if (globalSimTime < 0) { resetTime() }
+
+			updateTrajectories(globalSimTime)
+
+			document.getElementById("slider").value = 1 - Math.exp(-globalSimTime / 60)
+			document.getElementById("timeDisplay").innerHTML = globalSimTime.toFixed(3) + "&thinsp;s"
+			document.getElementById("speedDisplay").innerHTML = calcSpeed().toFixed(2) + "&thinsp;×"
+			requestAnimationFrame(updateTimer)
+		}
+		updateTimer()
+
+
+		const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+		const renderer = new THREE.WebGLRenderer()
+
+		window.addEventListener('resize', onWindowResize, false);
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		}
+		onWindowResize()
+
+		document.body.appendChild(renderer.domElement)
+
+		camera.position.set(3, 2, 1)
+		camera.up.set(0, 0, 1)
+		camera.lookAt(0, 0, 0)
+		const controls = new OrbitControls(camera, renderer.domElement)
+
+		const raycaster = new THREE.Raycaster()
+		const pointer = new THREE.Vector2()
+
+		function onPointerMove(event) {
+			pointer.x = (event.clientX / window.innerWidth) * 2 - 1
+			pointer.y = - (event.clientY / window.innerHeight) * 2 + 1
+		}
+
+		window.addEventListener('pointermove', onPointerMove)
+
+		let environmentPromise = new Promise((resolve, reject) => {
+			const pmremGenerator = new THREE.PMREMGenerator(renderer);
+			pmremGenerator.compileCubemapShader()
+
+			const loader = new THREE.CubeTextureLoader();
+			let textureCube = loader.load([
+				// swapped y and z which messes up rotation of individual faces, deal with it
+				`environment/px.jpg`, `environment/nx.jpg`,
+				`environment/pz.jpg`, `environment/nz.jpg`,
+				`environment/py.jpg`, `environment/ny.jpg`,
+			], function (texture) {
+				let pmrem = pmremGenerator.fromCubemap(texture)
+				resolve(pmrem.texture)
+			})
+		})
+
+		function createScene() {
+			let scene = new THREE.Scene()
+			scene.background = new THREE.Color(0xffffff)
+			const axesHelper = new THREE.AxesHelper(1)
+			scene.add(axesHelper)
+			let probe = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, emissive: 0x808080 }))
+			// scene.add(probe)
+			window.material = probe.material
+			environmentPromise.then((environment) => { scene.environment = environment })
+			return scene
+		}
+		globalScene = createScene()
+		window.globalScene = globalScene
+
+		function animate() {
+			raycaster.setFromCamera(pointer, camera)
+			const intersects = raycaster.intersectObjects(globalScene.children)
+
+			for (let i = 0; i < intersects.length; i++) {
+				// intersects[i].object.position.z += 0.01
+			}
+			requestAnimationFrame(animate)
+			renderer.render(globalScene, camera)
+		}
+		animate()
+
+		window.tree = function () {
+			function explore(obj) {
+				let result = {}
+				for (const [index, child] of Object.entries(obj.children)) {
+					result[`${child.name || index}:${child.type}`] = explore(child)
+				}
+				return result
+			}
+			return explore(globalScene)
+		}
+
+		function jsonToThreeScene(json) {
+			checkFields(json, [], ["models", "objects", "collisionIgnoreGroups", "trajectories"])
+
+			let scene = createScene()
+
+			let referenceables = {}
+
+			let objectFactories = {}
+			for (const [modelId, modelJson] of Object.entries(json.models ?? {})) {
+				objectFactories[modelId] = jsonToSceneObjectFactory(modelJson, referenceables)
+			}
+
+			let trajectories = []
+			for (const [trajectoryId, trajectoryJson] of Object.entries(json.trajectories ?? {})) {
+				let refbls = jsonToTrajectoryReferenceables(trajectoryJson)
+				if (Array.isArray(refbls)) {
+					for (let [i, refbl] of Object.entries(refbls)) {
+						referenceables[`trajectory:${trajectoryId}.${i}`] = refbl
+						trajectories.push(refbl)
+					}
+				}
+				else {
+					referenceables[`trajectory:${trajectoryId}`] = refbls
+					trajectories.push(refbls)
+				}
+			}
+			updateTrajectories = (t) => {
+				for (const traj of trajectories) {
+					traj.update(t)
+				}
+			}
+
+			let objects = {}
+			objects[WORLD_ID] = scene
+			for (const [objectId, objectJson] of Object.entries(json.objects ?? {})) {
+				objects[objectId] = jsonToSceneObject(objectJson, objectId, objectFactories, referenceables)
+			}
+			for (const object of Object.values(objects)) {
+				if (object !== scene) {
+					let idParts = object.userData.parentObjectId.split('.')
+					if (idParts.length == 1) {
+						objects[idParts[0]].add(object)
+					}
+					else if (idParts.length == 2) {
+						objects[idParts[0]].links[idParts[1]].add(object)
+					}
+					else {
+						throw new Error(`invalid id: ${object.userData.parentObjectId}`)
+					}
+				}
+			}
+
+			scene.userData.referenceables = referenceables
+
+			return scene
+		}
+
+		function jsonToSceneObject(json, objectId, objectFactories, referenceables) {
+			checkFields(json, ["model", "parent"], ["pose", "jointValues"])
+
+			let result = objectFactories[json.model](objectId)
+			result.userData.parentObjectId = json.parent ?? WORLD_ID
+			result.matrixAutoUpdate = false
+			result.matrix = jsonToDynamicMatrix(json.pose, objectId, referenceables)
+
+			for (const [jointId, valueJson] of Object.entries(json.jointValues ?? {})) {
+				if (typeof (valueJson) == "number") {
+					referenceables[`joint:${objectId}.${jointId}`].update(valueJson)
+				}
+				else {
+					jsonToRegisteredReference(valueJson, objectId, referenceables,
+						(value) => { referenceables[`joint:${objectId}.${jointId}`].update(value) }
+					)
+				}
+			}
+
+			return result
+		}
+
+		function jsonToSceneObjectFactory(json, referenceables) {
+			checkFields(json, ["kind"], "*")
+
+			switch (json.kind) {
+				case "rigidBody": return jsonToRigidBodyFactory(json)
+				case "robot": return jsonToRobotFactory(json, referenceables)
+				default: throw new Error("unknown model type: " + json.kind)
+			}
+		}
+
+		function jsonToRobotFactory(json, referenceables) {
+			checkFields(json, ["kind", "links"], ["partModels", "joints", "collisionIgnoreGroups", "constraints", "visuals"])
+
+			let partFactories = {}
+			for (const [modelId, modelJson] of Object.entries(json.partModels ?? {})) {
+				partFactories[modelId] = jsonToRigidBodyFactory(modelJson, modelId)
+			}
+
+			let visualsPromise = "visuals" in json && json.visuals !== null? loadVisuals(json.visuals) : null
+
+			let createRobot = function (robotId) {
+				for (const [jointId, jointJson] of Object.entries(json.joints ?? {})) {
+					const qualifiedId = `joint:${robotId}.${jointId}`
+					referenceables[qualifiedId] =
+						jsonToJointReferenceable(jointJson, qualifiedId)
+				}
+				let root = new THREE.Group()
+				root.name = robotId
+				let links = {}
+				links[ROOT_ID] = root
+				for (const [linkId, linkJson] of Object.entries(json.links)) {
+					links[linkId] = jsonToLinkObject(linkJson, partFactories, robotId, linkId, referenceables)
+				}
+				for (const [linkId, link] of Object.entries(links)) {
+					if (link !== root) {
+						links[link.userData.parentLinkId].add(link)
+					}
+					if (visualsPromise) {
+						visualsPromise.then((visuals) => {
+							if (linkId in visuals) {
+								let copy = visuals[linkId].clone()
+								copy.matrix.multiplyMatrices(
+									link.userData.defaultWorldPoseInverse,
+									copy.userData.defaultWorldPose
+								)
+								link.add(copy)
+							}
+						})
+					}
+				}
+				root.updateMatrixWorld(true)
+				for (const link of Object.values(links)) {
+					link.userData.defaultWorldPoseInverse = link.matrixWorld.clone().invert()
+				}
+				for (const [groupId, groupJson] of Object.entries(json.collisionIgnoreGroups ?? {})) {
+					console.warn("todo: collisionIgnoreGroups")
+				}
+				for (const [constraintId, constraintJson] of Object.entries(json.constraints ?? {})) {
+					console.warn("todo: constraints")
+				}
+				root.userData.links = links
+				return root
+			}
+			return createRobot
+		}
+
+		function jsonToJointReferenceable(json, qualifiedId) {
+			checkFields(json, [], ["minValue", "maxValue", "maxVelocity", "maxAcceleration", "maxDeceleration", "maxJerk", "maxEffort"])
+
+			let result = new Referenceable(
+				(value) => {
+					let result = value ?? 0
+					if (result < json.minValue) {
+						console.warn(`${qualifiedId}: ${result} exceeds lower joint limit of ${json.minValue}; gets clamped`)
+						result = json.minValue
+					}
+					if (result > json.maxValue) {
+						console.warn(`${qualifiedId}: ${result} exceeds upper joint limit of ${json.maxValue}; gets clamped`)
+						result = json.maxValue
+					}
+					return result
+				}
+			)
+			result.update()
+			return result
+		}
+
+		function jsonToRigidBodyFactory(json, bodyModelName) {
+			checkFields(json, [], ["kind", "centerOfMass", "mass", "inertia", "shapes", "visuals"])
+
+			let visualsPromise = "visuals" in json && json.visuals !== null ? loadVisuals(json.visuals) : null
+
+			let createRigidBody = function (bodyName) {
+				let result = new THREE.Group()
+				for (const [shapeId, shapeJson] of Object.entries(json.shapes ?? {})) {
+					let shape = jsonToShapeObject(shapeJson, shapeId)
+					result.add(shape)
+				}
+				if (visualsPromise) {
+					visualsPromise.then((visuals) => {
+						for (const obj of Object.values(visuals)) {
+							result.add(obj.clone())
+						}
+					})
+				}
+				result.userData = {
+					centerOfMass: json.centerOfMass,
+					mass: json.mass,
+					inertia: json.inertia,
+				}
+				result.name = bodyName ?? bodyModelName
+				return result
+			}
+			return createRigidBody
+		}
+
+		function jsonToLinkObject(json, partFactories, robotId, linkId, referenceables) {
+			checkFields(json, ["parent"], ["pose", "parts"])
+
+			let result = new THREE.Group()
+			result.name = linkId
+			result.matrixAutoUpdate = false
+			result.matrix = jsonToDynamicMatrix(json.pose, robotId, referenceables)
+			for (const part of json.parts ?? []) {
+				result.add(partFactories[part]())
+			}
+			result.userData.parentLinkId = json.parent ?? ROOT_ID
+			return result
+		}
+
+		function loadScene(json) {
+			globalScene = jsonToThreeScene(json)
+			window.globalScene = globalScene
+			resetTime()
+		}
+
+		dragDropInitialize(document.body, (content) => { loadScene(JSON.parse(content)) })
+
+		window.traces = []
+		let currentTrace = -1;
+		let traceTrim = 0
+
+		let traceObjects = []
+		let traceGeometries = []
+
+		let successPointMaterial = new THREE.PointsMaterial({ color: 0x00aa00, size: 0.01 });
+		let failurePointMaterial = new THREE.PointsMaterial({ color: 0xdd0000, size: 0.01 });
+		let successLineMaterial = new THREE.LineBasicMaterial({ color: 0x00aa00 });
+		let failureLineMaterial = new THREE.LineBasicMaterial({ color: 0xdd0000 });
+		let successLinePointMaterial = new THREE.PointsMaterial({ color: 0x00aa00, size: 0.003 });
+		let failureLinePointMaterial = new THREE.PointsMaterial({ color: 0xdd0000, size: 0.003 });
+		let currentSuccessPointMaterial = new THREE.PointsMaterial({ color: 0x00ee00, size: 0.02 });
+		let currentFailurePointMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 0.02 });
+		let currentSuccessLineMaterial = new THREE.LineBasicMaterial({ color: 0x00ee00 });
+		let currentFailureLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+		let currentSuccessLinePointMaterial = new THREE.PointsMaterial({ color: 0x00ee00, size: 0.006 });
+		let currentFailureLinePointMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 0.006 });
+
+		window.showTrace = function (trace, trim) {
+			for (const o of traceObjects) {
+				globalScene.remove(o)
+			}
+			traceObjects = []
+			for (const g of traceGeometries) {
+				g.dispose()
+			}
+			traceGeometries = []
+
+			for (let i = 0; i < trace.length && (i < trim || trim == 0); i++) {
+				let segment = trace[i]
+				if (typeof segment === 'string') {
+					if (i == trim - 1) {
+						console.log(segment)
+					}
+					continue
+				}
+				let points = segment.points.map(jsonToVector)
+				const geometry = new THREE.BufferGeometry().setFromPoints(points);
+				traceGeometries.push(geometry)
+
+				if (points.length == 1) {
+					const point = new THREE.Points(geometry,
+						i == trim - 1 ?
+							(segment.ok ? currentSuccessPointMaterial : currentFailurePointMaterial)
+							: (segment.ok ? successPointMaterial : failurePointMaterial)
+					)
+					traceObjects.push(point)
+					globalScene.add(point)
+				}
+				else {
+					const dotted = new THREE.Points(geometry,
+						i == trim - 1 ?
+							(segment.ok ? currentSuccessLinePointMaterial : currentFailureLinePointMaterial)
+							: (segment.ok ? successLinePointMaterial : failureLinePointMaterial)
+					)
+					traceObjects.push(dotted)
+					globalScene.add(dotted)
+					const line = new THREE.Line(geometry,
+						i == trim - 1 ?
+							(segment.ok ? currentSuccessLineMaterial : currentFailureLineMaterial)
+							: (segment.ok ? successLineMaterial : failureLineMaterial)
+					);
+					traceObjects.push(line)
+					globalScene.add(line);
+				}
+			}
+
+		}
+		document.getElementById("nextTrace").addEventListener("click", () => {
+			if (window.traces.length > 0) {
+				currentTrace = (currentTrace + 1) % window.traces.length
+				traceTrim = 0
+				showTrace(window.traces[currentTrace], traceTrim)
+			}
+		})
+		document.getElementById("lastTrace").addEventListener("click", () => {
+			if (window.traces.length > 0) {
+				currentTrace = (currentTrace + window.traces.length - 1) % window.traces.length
+				traceTrim = 0
+				showTrace(window.traces[currentTrace], traceTrim)
+			}
+		})
+		window.addEventListener('keydown', function (event) {
+			switch (event.key) {
+				case 'ArrowRight':
+					traceTrim++;
+					showTrace(window.traces[currentTrace], traceTrim)
+					break;
+				case 'ArrowLeft':
+					if (traceTrim > 0) {
+						traceTrim--;
+						showTrace(window.traces[currentTrace], traceTrim)
+					}
+					break;
+			}
+		});
+
+
+	</script>
+
+</body>
+
+</html>

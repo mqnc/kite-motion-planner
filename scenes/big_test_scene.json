@@ -1,0 +1,202 @@
+{
+	"models": {
+
+		"hodgepodge": {
+			"kind": "rigidBody",
+			"centerOfMass": [ 1, 2, 3 ],
+			"mass": 4,
+			"inertia": { "ixx": 5, "iyy": 6, "izz": 7 },
+			"shapes": {
+				"mySphere": {
+					"kind": "sphere",
+					"center": [ 1, 2, 3 ],
+					"radius": 4
+				},
+				"myBox": {
+					"kind": "box",
+					"pose": { "xyz_qxyzw": [ 4, 3, 2, 1, 0, 0, 0 ] },
+					"size": [ 7, 6, 5 ]
+				},
+				"myXCylinder": {
+					"kind": "cylinder",
+					"center": [ 1, 2, 3 ],
+					"radius": 4,
+					"height": 5,
+					"axis": "x"
+				},
+				"myYZCylinder": {
+					"kind": "cylinder",
+					"center": [ 1, 2, 3 ],
+					"radius": 4,
+					"height": 5,
+					"axis": [ 0, 1, 1 ]
+				},
+				"myOrangeNet": {
+					"kind": "orangeNet",
+					"points": [ [ 1, 2, 3 ], [ 2, 3, 1 ], [ 3, 1, 2 ] ],
+					"radius": 4
+				},
+				"myTetrahedron": {
+					"kind": "mesh",
+					"vertices": [ [ -1, -1, -1 ], [ -1, 1, 1 ], [ 1, -1, 1 ], [ 1, 1, -1 ] ],
+					"faces": [ [ 0, 1, 2 ], [ 0, 1, 3 ], [ 0, 2, 3 ], [ 1, 2, 3 ] ]
+				}
+			}
+		},
+
+		"myArm": {
+			"kind": "robot",
+			"links": {
+				"base": {
+					"parent": "ROOT",
+					"pose": { "xyz": [ { "joint": "cartX" }, { "joint": "cartY" }, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+				},
+				"upperArm": {
+					"parent": "base",
+					"pose": { "dh": { "a": 0, "alpha": 0, "theta": { "joint": "shoulder" }, "s": 1 } },
+					"parts": [ "upperArmCylinder" ]
+				},
+				"foreArm": {
+					"parent": "upperArm",
+					"pose": { "cols4x4": [ [ 11, 21, 31, 41 ], [ 12, 22, 32, 42 ], [ 13, 23, 33, 43 ], [ 14, 24, 34, 44 ] ] }
+				},
+				"finger1": {
+					"parent": "foreArm",
+					"pose": { "dh": { "a": 0, "alpha": 0, "theta": { "joint": "knuckle1" }, "s": 0.1 } },
+					"parts": [ "gripperFinger" ]
+				},
+				"finger2": {
+					"parent": "foreArm",
+					"pose": { "dh": { "a": 0, "alpha": 0, "theta": { "joint": "knuckle2" }, "s": 0.1 } },
+					"parts": [ "gripperFinger" ]
+				}
+			},
+			"partModels": {
+				"upperArmCylinder": {
+					"shapes": {
+						"s1": {
+							"kind": "cylinder",
+							"center": [ 0.5, 0, 0 ],
+							"radius": 0.05,
+							"height": 1,
+							"axis": "x"
+						}
+					}
+				},
+				"gripperFinger": {
+					"shapes": {
+						"fingerShape": {
+							"kind": "cylinder",
+							"center": [ 0, 0.1, 0 ],
+							"radius": 0.01,
+							"height": 0.23,
+							"axis": "y",
+							"stickyForce": 5
+						}
+					}
+				}
+			},
+			"joints": {
+				"cartX": { },
+				"cartY": { },
+				"shoulder": { },
+				"elbow": {
+					"minValue": -3.14,
+					"maxValue": 3.14,
+					"maxVelocity": 1,
+					"maxAcceleration": 1,
+					"maxDeceleration": 5,
+					"maxJerk": 10,
+					"maxEffort": 10
+				},
+				"knuckle1": { },
+				"knuckle2": { }
+			},
+			"collisionIgnoreGroups": {
+				"arm": [ "upperArm", "foreArm" ],
+				"hand": [ "foreArm", "finger1", "finger2" ]
+			},
+			"constraints": {
+				"grip": { "finger1": 1.0, "finger2": -1.0 }
+			}
+		},
+
+		"mySphere": {
+			"kind": "rigidBody",
+			"shapes": {
+				"sphereShape": {
+					"kind": "sphere",
+					"center": [ 0, 0, 0 ],
+					"radius": 1
+				}
+			}
+		}
+	},
+
+	"objects": {
+		"myFirstRobot": {
+			"model": "myArm",
+			"parent": "WORLD",
+			"pose": { "xyz_qxyzw": [ 0, 0, 0, 0, 0, 0, 1 ] },
+			"jointValues": {
+				"shoulder": 0.21,
+				"elbow": 0.4
+			}
+		},
+		"mylinkedRobot": {
+			"model": "myArm",
+			"parent": "myFirstRobot.foreArm",
+			"pose": { "xyz_qxyzw": [ 0, 0, 0, 0, 0, 0, 1 ] },
+			"jointValues": {
+				"shoulder": 0.22,
+				"elbow": 0.4
+			}
+		},
+		"myObject1": {
+			"parent": "WORLD",
+			"pose": { "xyz_qxyzw": [ 4, 3, 2, 1, 0, 0, 0 ] },
+			"model": "hodgepodge"
+		},
+		"myObject2": {
+			"parent": "myObject1",
+			"pose": { "xyz_qxyzw": [ 4, 3, 2, 1, 0, 0, 0 ] },
+			"model": "hodgepodge",
+			"todo model": { "file": "file://myExternalFile.json" }
+		},
+		"movingObstacle1": {
+			"parent": "WORLD",
+			"pose": { "xyz": [ 0, { "trajectory": "oscillation" }, 5 ], "euler": { "x0z1y2": [ 1, 2, 3 ] } },
+			"model": "mySphere"
+		},
+		"movingObstacle2": {
+			"parent": "WORLD",
+			"pose": { "xyz": [ 0, { "trajectory": "oscillation" }, 5 ], "euler": { "x0z1y2": [ 1, 2, 3 ] } },
+			"pose_": { "xyz_qxyzw": { "trajectory": "wobble" } },
+			"model": "mySphere"
+		}
+	},
+
+
+	"collisionIgnoreGroups": {
+		"touch": [ "myInPlaceObject2.myLocalSphere", "" ]
+	},
+
+	"trajectories": {
+		"oscillation": {
+			"controlPoints": [
+				{ "f": 1, "df": 0 },
+				{ "f": -1, "df": 0 }
+			],
+			"dtDefault": 0.5,
+			"repeat": true
+		},
+		"wobble": {
+			"controlPoints": [
+				{ "t": 0, "f": [ 1, 0, 0, 0, 0, 0, 1 ], "df": [ 0, 0, 0, 0, 0, 0, 0 ] },
+				{ "t": 1, "f": [ -1, 0, 0, 0, 0, -1, 0 ], "df": [ 0, 0, 0, 0, 0, 0, 0 ] }
+			],
+			"dtDefault": 0.0,
+			"repeat": true
+		}
+	}
+}

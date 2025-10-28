@@ -1,0 +1,22 @@
+{
+	"motionTest": "jointCuboidSweep",
+	"actuatedJoints": [
+		"robot.base",
+		"robot.shoulder",
+		"robot.elbow",
+		"robot.wrist1",
+		"robot.wrist2",
+		"robot.wrist3"
+	],
+	"start": [ 0, 0, 0, 0, 0, 0 ],
+	"targetPool": [ [ 0.0, 0.0, 0.2, 0.0, 0.0, 0.0 ] ],
+	"constraints": [],
+	"maxStepSize": {
+		"sampling": [ 0.0175, 0.0175, 0.0175, 0.0175, 0.0175, 0.0175 ],
+		"cartesianLinearSweep": [ 0.0783, 0.0783, 0.0783, 0.0783, 0.0783, 0.0783 ],
+		"jointCuboidSweep": [ 3, 3, 3, 3, 3, 3 ]
+	},
+	"timeout": 60,
+	"maxChecks": 100000,
+	"debugLevel": 2
+}

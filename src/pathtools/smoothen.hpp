@@ -1,16 +1,26 @@
 
+#pragma once
+
 #include "stl.h"
+#include "interpolator/interpolator.h"
+#include "valarraytools.h"
+#include "subspace.hpp"
+#include "timeparametrize.hpp"
+#include "utils/profiling.h"
 
 // generate velocity vectors in waypoints using heuristics similar to akima spline
 // then sample to find a good scaling for each of those vectors
 
-ConsecutiveSplines smoothenPath(
-	const Path waypoints,
+Path smoothenPath(
+	Path waypoints,
 	double dt,
-	const valarray<double>& max_velocity,
-	const valarray<double>& max_acceleration,
-	const valarray<double>& max_jerk,
+	const valarray<double>& maxVelocity,
+	const valarray<double>& maxAcceleration,
+	const valarray<double>& maxJerk,
+    const function<bool(const Path&)>& checkPath,
+    const Subspace* subspace = nullptr
 ) {
+    PROFILE_SCOPE(smoothenPath);
 
 	// https://en.wikipedia.org/wiki/Off-by-one_error#Fencepost_error
 	// waypoints are fence posts, spline segments are fence sections
@@ -24,7 +34,7 @@ ConsecutiveSplines smoothenPath(
 	}
 	waypoints = waypoints[uniqueMask];
 
-	if (waypoints.size() < 2) { return waypoints; }
+	if (waypoints.size() <= 1) { return waypoints; }
 
 	size_t numWaypoints = waypoints.size();
 	size_t numSegments = numWaypoints - 1;
@@ -43,13 +53,14 @@ ConsecutiveSplines smoothenPath(
 	// what is the fastest the robot could travel on linear segments
 	valarray<valarray<double>> maxLinearSegmentVelocities = betweens;
 	for (auto& v : maxLinearSegmentVelocities) {
-		v = maximizeLengthWithinCuboid(v, max_velocity);
+		v = maximizeLengthWithinCuboid(v, maxVelocity);
 	}
 
 	// where two segments meet in a waypoint, how heavily does each segment's
 	// velocity contribute to the velocity in the waypoint
 	valarray<double> velContribution = 1.0 / distanceMeasure;
 
+    valarray<double> zeros = valarray<double>(0.0, numDimensions);
 
 	valarray<valarray<double>> maxWaypointVelocities(numWaypoints);
 	maxWaypointVelocities[0] = zeros;
@@ -69,9 +80,9 @@ ConsecutiveSplines smoothenPath(
 			return make_unique<LinearPointToPointTrajectory>(
 				waypoints[seg],
 				waypoints[seg + 1],
-				max_velocity,
-				max_acceleration,
-				max_jerk
+				maxVelocity,
+				maxAcceleration,
+				maxJerk
 				);
 		}
 		else {
@@ -81,9 +92,9 @@ ConsecutiveSplines smoothenPath(
 			return make_unique<OptimalTrajectory>(
 				waypoints[seg], vStart, zeros,
 				waypoints[seg + 1], vEnd, zeros,
-				max_velocity,
-				max_acceleration,
-				max_jerk
+				maxVelocity,
+				maxAcceleration,
+				maxJerk
 				);
 		}
 	};
@@ -96,11 +107,11 @@ ConsecutiveSplines smoothenPath(
 		valarray<valarray<double>> sampledTestTrack = testTrack->sample(dt, false);
 
 		// force into constraints
-		sampledTestTrack = subspace.unproject(subspace.project(sampledTestTrack, false, inf));
+        if (subspace){
+		    sampledTestTrack = subspace->unproject(subspace->project(sampledTestTrack, false, inf));
+        }
 
-		bool bounded = robot.checkJointLimits(sampledTestTrack);
-		if (!bounded) { return inf; }
-		bool clear = check_clearance(object_id, sampledTestTrack);
+		bool clear = checkPath(sampledTestTrack);
 		if (!clear) { return inf; }
 
 		// cost represents integral over absolute value of acceleration
@@ -142,14 +153,16 @@ ConsecutiveSplines smoothenPath(
 	auto result = compound.sample(dt, true);
 
 	// force into constraints
-	result = subspace.unproject(subspace.project(result, false, inf));
+    if (subspace){
+    	result = subspace->unproject(subspace->project(result, false, inf));
+    }
 
 	// remove overshoots from constraint enforcement
-	result = time_parameterize_path(
+	result = timeParameterize(
 		result, dt,
-		max_velocity,
-		max_acceleration,
-		max_jerk
+		maxVelocity,
+		maxAcceleration,
+		maxJerk
 	);
 
 	// plot(result, "exports/x.py");

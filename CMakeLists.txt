@@ -53,6 +53,15 @@ target_include_directories(ompl PUBLIC
 )
 target_link_libraries(ompl ${OMPL_DEPENDS})
 
+# Ruckig
+
+file(GLOB_RECURSE RUCKIG_SOURCE
+	"src/thirdparty/ruckig/src/*.cpp"
+)
+add_library(ruckig
+	${RUCKIG_SOURCE}
+)
+target_include_directories(ruckig PUBLIC src/thirdparty/ruckig/include)
 
 # planner
 
@@ -70,6 +79,7 @@ add_executable(main
 	src/collision/shapes/inflatedconvexhullshape.cpp
 	src/collision/shapes/visualmeshshape.cpp
 	src/export/shapestojson.cpp
+    src/interpolator/interpolator.cpp
 	src/pathfinder/findpath.cpp
 	src/pathfinder/RRTConnectCustom.cpp
 )
@@ -77,7 +87,7 @@ target_compile_definitions(main
 	PUBLIC COLLISION_BETWEEN_INFLATED_BOXES_CONSIDERS_ROUNDED_EDGES
 )
 
-target_link_libraries(main bullet ompl)
+target_link_libraries(main bullet ompl ruckig)
 
 add_executable(playground
 	src/experiments/playground.cpp

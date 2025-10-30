@@ -43,6 +43,8 @@ try without hull optimization
 why is debug as fast as release
 -> this came from the bullet initialization of collisionWorld, it is now fixed by making some things static members
 
+need an alternative to DH for specifying a free translation together with a free rotation about an axis I think
+
 ## Nice-to-haves
 
 Inverse kinematics: IK is currently done in the python wrapper for UR robots only. The challenge is that different robot architectures need different algorithms and also different ways to handle the solutions. A standard industrial robot has 2, 4 or 8 solutions (depending on whether it can invert its elbow and do overhead operations). The URs have 512 (since each joint can do 2 full turns) which often need filtering because it is too expensive to consider them all in further operations. The Panda has 7 joints and thus infinitely many solutions. We either need a plugin system for IK modules for different robots (.so file? lua? Tiny C Compiler?) or we need the most common ones hard-coded in the planner and use numeric IK otherwise. Then, based on that, we can do linear interpolation with speed checks, which is currently also done in the python wrapper.

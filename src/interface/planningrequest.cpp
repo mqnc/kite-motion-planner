@@ -49,6 +49,9 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 	maxStepSize,
 	timeout,
 	maxChecks,
+    simplify,
+    tighten,
+    smoothen,
 	debugLevel
 );
 

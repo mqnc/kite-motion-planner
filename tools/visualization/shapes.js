@@ -35,7 +35,7 @@ void main()
 // })
 let coreMaterial = new THREE.ShaderMaterial({
 	uniforms: {
-		glowColor: { value: new THREE.Color(0, 0.408, 0.459) },
+		glowColor: { value: new THREE.Color(0.584, 0.059, 0.329) },
 	},
 	vertexShader: haloVertexShader,
 	fragmentShader: haloFragmentShader,
@@ -45,7 +45,7 @@ export function setCoreMaterial(material) { coreMaterial = material }
 
 let marginMaterial = new THREE.ShaderMaterial({
 	uniforms: {
-		glowColor: { value: new THREE.Color(0.584, 0.059, 0.329) },
+		glowColor: { value: new THREE.Color(0, 0.408, 0.459) },
 	},
 	vertexShader: haloVertexShader,
 	fragmentShader: haloFragmentShader,
@@ -54,7 +54,7 @@ let marginMaterial = new THREE.ShaderMaterial({
 });
 export function setMarginMaterial(material) { marginMaterial = material }
 
-let numCircleCorners = 40
+let numCircleCorners = 200
 let icoDetail = Math.floor(numCircleCorners / 5 - 1)
 let sphereTemplateGeometry = new THREE.IcosahedronGeometry(1, icoDetail)
 let sphereTemplate = new THREE.Mesh(sphereTemplateGeometry)

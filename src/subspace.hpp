@@ -71,7 +71,7 @@ public:
 		const valarray<double>& params,
 		bool isDerivative = false,
 		double tolerance = 1e-6
-	) {
+	) const {
 
 		if (superDims == subDims) {
 			return params;
@@ -100,7 +100,7 @@ public:
 		const valarray<valarray<double>>& trajectory,
 		bool isDerivative = false,
 		double tolerance = 1e-6
-	) {
+	) const {
 		if (superDims == subDims) {
 			return trajectory;
 		}
@@ -115,7 +115,7 @@ public:
 	valarray<double> unproject(
 		const valarray<double>& params,
 		bool isDerivative = false
-	) {
+	) const {
 		if (superDims == subDims) {
 			return params;
 		}
@@ -130,10 +130,10 @@ public:
 		return result;
 	}
 
-	valarray<valarray<double>> unproject(
+	valarray<valarray<double>> unproject (
 		const valarray<valarray<double>>& trajectory,
 		bool isDerivative = false
-	) {
+	) const {
 		if (superDims == subDims) {
 			return trajectory;
 		}

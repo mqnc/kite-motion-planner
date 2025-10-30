@@ -25,9 +25,12 @@ struct PlanningRequest {
 	valarray<valarray<double>> targetPool;
 	valarray<valarray<double>> constraints;
 	MaxStepSize maxStepSize;
-	int debugLevel = 0;
 	double timeout = 5;
 	size_t maxChecks = 10000;
+    bool simplify = true;
+    bool tighten = true;
+    bool smoothen = true;
+	int debugLevel = 0;
 };
 
 PlanningRequest loadRequest(const std::string& file);

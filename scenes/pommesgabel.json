@@ -1,0 +1,193 @@
+{
+    "models": {
+        "pommesgabel": {
+            "kind": "robot",
+            "links": {
+                "base": {
+                    "parent": "ROOT",
+                    "pose": { "xyz": [ 0, 0, 0.05 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "baseShoulderCollision" ]
+                },
+                "baseAxis": {
+                    "parent": "base",
+                    "pose": { "axisAngle": { "axis": [ 0, 0, 1 ], "angle": { "joint": "baseJoint" } } }
+                },
+                "shoulder": {
+                    "parent": "baseAxis",
+                    "pose": { "xyz": [ 0, 0, 0.15 ], "qxyzw": [ 0, 0, 0, 1 ] }
+                },
+                "shoulderAxis": {
+                    "parent": "shoulder",
+                    "pose": { "axisAngle": { "axis": [ 0, 1, 0 ], "angle": { "joint": "shoulderJoint" } } }
+                },
+                "upperArm": {
+                    "parent": "shoulderAxis",
+                    "pose": { "xyz": [ 0, 0, 0.4 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "upperArmCollision" ]
+                },
+                "elbowAxis": {
+                    "parent": "upperArm",
+                    "pose": { "axisAngle": { "axis": [ 0, 1, 0 ], "angle": { "joint": "elbowJoint" } } }
+                },
+                "forearm": {
+                    "parent": "elbowAxis",
+                    "pose": { "xyz": [ 0, 0, 0.25 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "forearmWrist1Collision" ]
+                },
+                "forearmAxis": {
+                    "parent": "forearm",
+                    "pose": { "axisAngle": { "axis": [ 0, 0, 1 ], "angle": { "joint": "forearmJoint" } } }
+                },
+                "wrist1": {
+                    "parent": "forearmAxis",
+                    "pose": { "xyz": [ 0, 0, 0.15 ], "qxyzw": [ 0, 0, 0, 1 ] }
+                },
+                "wrist1Axis": {
+                    "parent": "wrist1",
+                    "pose": { "axisAngle": { "axis": [ 0, 1, 0 ], "angle": { "joint": "wristPitchJoint" } } }
+                },
+                "wrist2": {
+                    "parent": "wrist1Axis",
+                    "pose": { "xyz": [ 0, 0, 0.15 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "wrist2HandCollision" ]
+                },
+                "wrist2Axis": {
+                    "parent": "wrist2",
+                    "pose": { "axisAngle": { "axis": [ 0, 0, 1 ], "angle": { "joint": "wristRollJoint" } } }
+                },
+                "hand": {
+                    "parent": "wrist2Axis",
+                    "pose": { "xyz": [ 0, 0, 0.05 ], "qxyzw": [ 0, 0, 0, 1 ] }
+                },
+                "finger1Holder": {
+                    "parent": "hand",
+                    "pose": { "xyz": [ 0, 0.03, 0.07 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "fingerHolderCollision" ]
+                },
+                "finger1Axis": {
+                    "parent": "finger1Holder",
+                    "pose": { "axisAngle": { "axis": [ 1, 0, 0 ], "angle": { "joint": "finger1Joint" } } }
+                },
+                "finger1": {
+                    "parent": "finger1Axis",
+                    "parts": [ "fingerCollision" ],
+                    "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+                },
+                "finger2Holder": {
+                    "parent": "hand",
+                    "pose": { "xyz": [ 0, -0.03, 0.07 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "fingerHolderCollision" ]
+                },
+                "finger2Axis": {
+                    "parent": "finger2Holder",
+                    "pose": { "axisAngle": { "axis": [ -1, 0, 0 ], "angle": { "joint": "finger2Joint" } } }
+                },
+                "finger2": {
+                    "parent": "finger2Axis",
+                    "parts": [ "fingerCollision" ],
+                    "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+                }
+            },
+
+            "joints": {
+                "baseJoint": {
+                    "minValue": -3.14159265359, "maxValue": 3.14159265359,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "shoulderJoint": {
+                    "minValue": -2.0943951, "maxValue": 2.0943951,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "elbowJoint": {
+                    "minValue": -2.0943951, "maxValue": 2.0943951,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "forearmJoint": {
+                    "minValue": -3.14159265359, "maxValue": 3.14159265359,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "wristPitchJoint": {
+                    "minValue": -2.0943951, "maxValue": 2.0943951,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "wristRollJoint": {
+                    "minValue": -3.14159265359, "maxValue": 3.14159265359,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "finger1Joint": {
+                    "minValue": -0.785398163, "maxValue": 0.785398163,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                },
+                "finger2Joint": {
+                    "minValue": -0.785398163, "maxValue": 0.785398163,
+                    "maxVelocity": 1, "maxAcceleration": 1, "maxDeceleration": 5, "maxJerk": 10, "maxEffort": 10
+                }
+            },
+
+            "partModels": {
+                "baseShoulderCollision": { "shapes": {
+                        "bsShape": { "kind": "orangeNet",
+                            "points": [ [ 0, 0, 0 ], [ 0, 0, 0.15 ] ], "radius": 0.078, "margin": 0.02
+                        }
+                    } },
+                "upperArmCollision": { "shapes": {
+                        "uaShape": { "kind": "orangeNet",
+                            "points": [ [ 0, 0, 0 ], [ 0, 0, -0.4 ] ], "radius": 0.079, "margin": 0.02
+                        }
+                    } },
+                "forearmWrist1Collision": { "shapes": {
+                        "fawShape": { "kind": "orangeNet",
+                            "points": [ [ 0, 0, -0.25 ], [ 0, 0, 0.15 ] ], "radius": 0.078, "margin": 0.02
+                        }
+                    } },
+                "wrist2HandCollision": { "shapes": {
+                        "w2hShape": { "kind": "orangeNet",
+                            "points": [ [ 0, 0, -0.15 ], [ 0, 0, 0.05 ] ], "radius": 0.056, "margin": 0.005
+                        }
+                    } },
+                "fingerHolderCollision": { "shapes": {
+                        "fhShape": { "kind": "orangeNet",
+                            "points": [ [ 0, 0, 0 ], [ 0, 0, -0.07 ] ], "radius": 0.02, "margin": 0.0025
+                        }
+                    } },
+                "fingerCollision": { "shapes": {
+                        "fShape": { "kind": "orangeNet",
+                            "points": [ [ 0, 0, 0 ], [ 0, 0, 0.067 ] ], "radius": 0.015, "margin": 0.0025
+                        }
+                    } }
+            },
+
+            "collisionIgnoreGroups": {
+                "shoulder": [ "base", "upperArm" ],
+                "armParts": [ "upperArm", "forearm" ],
+                "forearmHand": [ "forearm", "wrist1", "wrist2", "hand", "finger1Holder", "finger2Holder" ],
+                "finger1": [ "finger1Holder", "finger1" ],
+                "finger2": [ "finger2Holder", "finger2" ]
+            },
+            "constraints": { },
+            "visuals": "../../models/pommesgabel.glb"
+        }
+    },
+
+
+    "objects": {
+        "robot": {
+            "model": "pommesgabel",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+            "jointValues": {
+                "baseJoint": 0.8,
+                "shoulderJoint": 0.342,
+                "elbowJoint": 1.5,
+                "forearmJoint": 0.0,
+                "wristPitchJoint": 1.3,
+                "wristRollJoint": 0.8,
+                "finger1Joint": 0.15,
+                "finger2Joint": 0.15
+            }
+        }
+    },
+
+    "collisionIgnoreGroups": { }
+
+}

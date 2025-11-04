@@ -126,6 +126,7 @@ public:
 				}
 				else {
 					double delta = abs(b - a);
+                    double dir = (b > a) ? 1 : -1;
 					size_t intermediateSteps = ceil(delta / config.maxRotationStep);
 					double stepSize = delta / intermediateSteps;
 					double stretch = 1.0 / cos(stepSize / 2.0);
@@ -136,7 +137,7 @@ public:
 					if (limits.mode == SweepMode::jointCuboidSweep) {
 						for (size_t k = 0; k < intermediateSteps; k++) {
 							steps.push_back(
-								axisAngleToTransform(config.normalizedAxis, a + (k + 0.5) * stepSize)
+								axisAngleToTransform(config.normalizedAxis, a + (k + 0.5) * dir * stepSize)
 								* planarScalingToTransform(config.normalizedAxis, stretch)
 							);
 						}

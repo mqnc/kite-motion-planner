@@ -161,8 +161,8 @@
                 "shoulder": [ "base", "upperArm" ],
                 "armParts": [ "upperArm", "forearm" ],
                 "forearmHand": [ "forearm", "wrist1", "wrist2", "hand", "finger1Holder", "finger2Holder" ],
-                "finger1": [ "finger1Holder", "finger1" ],
-                "finger2": [ "finger2Holder", "finger2" ]
+                "finger1": [ "wrist2", "finger1Holder", "finger1" ],
+                "finger2": [ "wrist2", "finger2Holder", "finger2" ]
             },
             "constraints": { },
             "visuals": "../../models/pommesgabel.glb"

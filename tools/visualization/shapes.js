@@ -4,23 +4,21 @@ import { checkFields } from "./utils.js"
 import { ConvexGeometry2 } from './ConvexGeometry2.js'
 import { jsonToVector, jsonToAxis, jsonToDynamicMatrix } from './trafo.js'
 
-const haloVertexShader = `
+export const haloVertexShader = `
 varying vec3 nml;
 varying vec3 pos;
 
-void main()
-{
+void main() {
 	pos = (modelMatrix * vec4(position, 1.0)).xyz;
 	nml = (modelMatrix * vec4(normal, 0.0)).xyz;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 }
 `
-const haloFragmentShader = `
+export const haloFragmentShader = `
 uniform vec3 glowColor;
 varying vec3 pos;
 varying vec3 nml;
-void main()
-{
+void main() {
 	vec3 view = normalize(pos-cameraPosition);
 	float intensity = pow(1.0 - abs(dot(normalize(nml), view)), 3.0);
 	//gl_FragColor = vec4( glowColor, 0.9 * intensity + 0.1 );
@@ -33,7 +31,7 @@ void main()
 // 	roughness: 0.8,
 // 	metalness: 0.2,
 // })
-let coreMaterial = new THREE.ShaderMaterial({
+export let coreMaterial = new THREE.ShaderMaterial({
 	uniforms: {
 		glowColor: { value: new THREE.Color(0.584, 0.059, 0.329) },
 	},
@@ -43,7 +41,7 @@ let coreMaterial = new THREE.ShaderMaterial({
 });
 export function setCoreMaterial(material) { coreMaterial = material }
 
-let marginMaterial = new THREE.ShaderMaterial({
+export let marginMaterial = new THREE.ShaderMaterial({
 	uniforms: {
 		glowColor: { value: new THREE.Color(0, 0.408, 0.459) },
 	},
@@ -54,10 +52,19 @@ let marginMaterial = new THREE.ShaderMaterial({
 });
 export function setMarginMaterial(material) { marginMaterial = material }
 
-let numCircleCorners = 200
-let icoDetail = Math.floor(numCircleCorners / 5 - 1)
-let sphereTemplateGeometry = new THREE.IcosahedronGeometry(1, icoDetail)
-let sphereTemplate = new THREE.Mesh(sphereTemplateGeometry)
+let numCircleCorners=40, icoDetail, sphereTemplateGeometry
+    icoDetail = Math.floor(numCircleCorners / 5 - 1)
+    sphereTemplateGeometry = new THREE.IcosahedronGeometry(1, icoDetail)
+export let sphereTemplate = new THREE.Mesh(sphereTemplateGeometry)
+
+export function setCurvatureSmoothness(newNumCircleCorners){
+    numCircleCorners = newNumCircleCorners
+    icoDetail = Math.floor(numCircleCorners / 5 - 1)
+    sphereTemplateGeometry = new THREE.IcosahedronGeometry(1, icoDetail)
+    sphereTemplate = new THREE.Mesh(sphereTemplateGeometry)
+}
+setCurvatureSmoothness(40)
+
 let origin = { xyz: [0, 0, 0], qxyzw: [0, 0, 0, 1] }
 
 const commonShapeKeys = ["margin", "collides", "stickyForce", "visuals"]

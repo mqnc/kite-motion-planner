@@ -180,7 +180,7 @@ public:
 				{"collisions", debugCollisions}
 			};
 			bool clear = report.numCollisions == 0;
-			writeFile("../../log/scene" + zeroPad(collisionDetectionCallCounter, 4)
+			writeFile("./log/scene" + zeroPad(collisionDetectionCallCounter, 4)
 					+ "_" + name + (clear ? "_OK" : "_collision") + ".json",
 				debugFile.dump(1, '\t'));
 
@@ -204,7 +204,7 @@ public:
 					{"collisions", debugCollisions}
 				};
 
-				writeFile("../../log/scene" + zeroPad(collisionDetectionCallCounter, 4)
+				writeFile("./log/scene" + zeroPad(collisionDetectionCallCounter, 4)
 						+ "_" + name + "_collision.json", debugFile.dump(1, '\t'));
 
 				PROFILE_PAUSE(debug export);

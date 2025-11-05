@@ -1,5 +1,5 @@
 # Kite Motion Planner
-Proof-of-Concept Motion Planner for Robot Arms
+Proof-of-Concept Motion Planner for Robot Arms, written in C++
 
 ## About
 
@@ -7,7 +7,7 @@ This project is an experimental successor to the [Gestalt Motion Planner](https:
 
 ## Project Status
 
-Despite having been developed to be used in production later on, this planner is still in experimental state. The author is no longer working at Gestalt Automation GmbH where the project was initially started and is now maintaining it as a hobby.
+Despite having been developed to be used in production later on, this planner is still in an experimental state. The author is no longer working at Gestalt Automation GmbH where the project was initially started and is now maintaining it as a hobby.
 
 ## License
 
@@ -32,9 +32,9 @@ In order to check a motion for collision, we start at the leaves of our kinemati
 
 <p align="center"><img src="docs/construction.png" alt="construction" style="max-width: 100%; width: 600px;"></p>
 
- If the joint is prismatic, we simply have to move points $A$ and $B$ along the translation axis and then construct the convex hull around $A_1$, $A_2$, $B_1$ and $B_2$. For revolute joints, we rotate each point about the joint axis from state 1 to state 2 but in addition to that we need a helper point ($A_h$ and $B_h$ in the sketch). We find it where the motion tangent at the start location of a point and the motion tangent at the target location of that point intersect. We then also include spheres around all helper points in the convex hull that covers our sweeping volume. This ensures that the resulting shape is guaranteed to completely enclose the finger at all times during motion.
+If the joint is prismatic, we simply have to move points $A$ and $B$ along the translation axis and then construct the convex hull around $A_1$, $A_2$, $B_1$ and $B_2$. For revolute joints, we rotate each point about the joint axis from state 1 to state 2 but in addition to that we need a helper point ($A_h$ and $B_h$ in the sketch). We find it where the motion tangent at the start location of a point and the motion tangent at the target location of that point intersect. We then also include spheres around all helper points in the convex hull that covers our sweeping volume. This ensures that the resulting shape is guaranteed to completely enclose the finger at all times during motion.
 
- Contrast this with traditional sampling and continuous collision detection approaches which can both result in missed collisions in the red areas:
+Contrast this with traditional sampling and continuous collision detection approaches which can both result in missed collisions in the red areas:
 
 <p align="center"><img src="docs/comparison.png" alt="comparison" style="max-width: 100%; width: 800px;"></p>
 
@@ -46,7 +46,7 @@ This covers the main idea. For further discussion, check out [discussion](docs/s
 
 ### Joint Projection Constraints
 
-Some tasks require that the end effector keeps a certain orientation, for instance when holding a liquid. There are two propular approaches to deal with this:
+Some tasks require that the end effector keeps a certain orientation, for instance when holding a liquid. There are two popular approaches to deal with this:
 
 1) Sampling lots of poses and keeping only those within some tolerance around the target orientation — this is computationally very expensive and also very unsexy.
 2) Sampling in Cartesian space and computing the IK for every sample — also expensive and configuration flips have to be detected and avoided.

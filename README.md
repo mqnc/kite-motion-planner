@@ -25,21 +25,22 @@ The core concept is somewhat similar to what is outlined in [this paper](https:/
 
 We approximate each moving part with convex hulls around one or more equally-sized spheres.
 
-![approximation](docs/approximation.png)
+<!-- ![approximation](docs/approximation.png) -->
+<p align="center"><img src="docs/approximation.png" alt="approximation" style="max-width: 100%; width: 400px;"></p>
 
 In order to check a motion for collision, we start at the leaves of our kinematic tree. Let us consider a single finger which is modeled by a capsule shape: a convex hull around two spheres located at point $A$ and point $B$. We now want to move this finger using a joint from state 1 to state 2. For this we construct the volume that the finger will sweep through during the motion. We can then check this sweeping volume for collisions with the environment.
 
-![construction](docs/construction.png)
+<p align="center"><img src="docs/construction.png" alt="construction" style="max-width: 100%; width: 600px;"></p>
 
  If the joint is prismatic, we simply have to move points $A$ and $B$ along the translation axis and then construct the convex hull around $A_1$, $A_2$, $B_1$ and $B_2$. For revolute joints, we rotate each point about the joint axis from state 1 to state 2 but in addition to that we need a helper point ($A_h$ and $B_h$ in the sketch). We find it where the motion tangent at the start location of a point and the motion tangent at the target location of that point intersect. We then also include spheres around all helper points in the convex hull that covers our sweeping volume. This ensures that the resulting shape is guaranteed to completely enclose the finger at all times during motion.
 
  Contrast this with traditional sampling and continuous collision detection approaches which can both result in missed collisions in the red areas:
 
-![comparison](docs/comparison.png)
+<p align="center"><img src="docs/comparison.png" alt="comparison" style="max-width: 100%; width: 800px;"></p>
 
 Now we have to propagate our way up the robot joint by joint to the robot base, always sweeping every volume we have constructed further down. As an example, here is a 6DoF robot where wrist, elbow and base each move by 30° and the step-by-step sweeping volume construction from end effector to base:
 
-![sweep](docs/sweep.png)
+<p align="center"><img src="docs/sweep.png" alt="sweep" style="max-width: 100%; width: 800px;"></p>
 
 This covers the main idea. For further discussion, check out [discussion](docs/sweep_discussion.md).
 
@@ -52,7 +53,7 @@ Some tasks require that the end effector keeps a certain orientation, for instan
 
 In this planner, we keep the end effector upright by working in a lower-dimensional slice of the joint space. Consider the following configuration:
 
-![constraints](docs/constraints.png)
+<p align="center"><img src="docs/constraints.png" alt="constraints" style="max-width: 100%; width: 400px;"></p>
 
 If we keep both `q5` as well as the sum `q2 + q3 + q4` constant, the flask can only stay perfectly level. This can be specified via the following list of linear constraint vectors: `[[0, 0, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0]]`, meaning
 

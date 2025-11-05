@@ -4,7 +4,7 @@
 
 Consider these two fingers:
 
-![gripper](gripper.png)
+<p align="center"><img src="gripper.png" alt="gripper" style="max-width: 100%; width: 200px;"></p>
 
 If the whole gripper moves to the left or to the right, the constructed sweeping volumes of the fingers will intersect and report a collision that cannot happen if the finger joints do not actually move. In contrast to the other false positives that this approach can generate, this one is not tolerable as it will happen constantly.
 
@@ -22,7 +22,7 @@ Another way is to limit the amount of simultaneously-actuated joints. RRTConnect
 
 Checking motion from one joint state to another essentially tests the whole axis-aligned cuboid around these states in joint space for collision. Meaning, if no collision is found, it means that any path from start to target (such that each joint value always falls somewhere between its start and target value) is valid. In contrast, when we sample an exact trajectory, only that trajectory is valid, if we did not miss a collision between samples.
 
-![gripper](sample_vs_sweep.png)
+<p align="center"><img src="sample_vs_sweep.png" alt="sample vs sweep" style="max-width: 100%; width: 900px;"></p>
 
 This has advantages and disadvantages. The disadvantage is that if any joint state within the cuboid collides, the whole cuboid is rejected. We can however split the trajectory and check subcuboids along the path, but that requires more computation.
 
@@ -34,7 +34,7 @@ Furthermore, if the environment does not change between planning attempts or the
 
 The sweeping approach can test very large joint motions in a single step. However, if the motion becomes too large, the [helper point](../README.md#hierarchical-sweeping) that is constructed from two tangents moves too far out and the enclosed inner concave region can also create too many phantom collisions. This can be mitigated by adding multiple helper points or by splitting the motion of individual joints and creating multiple convex hulls. Thus, arbitrarily large joint motions can be checked in one go.
 
-![too large joint motion](too_large.png)
+<p align="center"><img src="too_large.png" alt="too large joint motion" style="max-width: 100%; width: 800px;"></p>
 
 ## Collision-Freedom Guaranteed*
 

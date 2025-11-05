@@ -41,7 +41,7 @@ Now we have to propagate our way up the robot joint by joint to the robot base, 
 
 ![sweep](docs/sweep.png)
 
-This covers the main idea. For more advanced nuances and implications of that approach, you can unfold the advanced section below.
+This covers the main idea. For further discussion, check out [discussion](docs/sweep_discussion.md).
 
 ### Joint Projection Constraints
 

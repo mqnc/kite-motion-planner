@@ -1,6 +1,8 @@
 # Kite Motion Planner
 Proof-of-Concept Motion Planner for Robot Arms, written in C++
 
+[![motion preview](docs/preview.png)](https://www.youtube.com/watch?v=P05CipdwYNM)
+
 ## About
 
 This project is an experimental successor to the [Gestalt Motion Planner](https://github.com/mqnc/gestalt-motion-planner). It is centered around a concept that allows for very efficient motion validation that can theoretically guarantee collision-free motion (in contrast to the usual sampling or linear continuous collision detection approaches).

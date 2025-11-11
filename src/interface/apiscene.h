@@ -215,7 +215,7 @@ struct ControlPoint {
 
 struct Trajectory {
 	vector<ControlPoint> controlPoints;
-	bool repeats = false;
+	bool repeat = false;
 };
 
 struct Scene {

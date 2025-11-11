@@ -54,6 +54,8 @@
 #define PRINT_PATH(PATH) \
 std::cout << "\n\n" #PATH ":" << "\n"; for (const auto& p: PATH) { std::cout << "{ \"f\": " << p << ", \"df\": [0, 0, 0, 0, 0, 0] }," << "\n"; }
 
+bool optimizeConvexHulls;
+
 int main(int argc, char* argv[]) {
 	vector<string> args(argv, argv + argc);
 
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]) {
 		jointLimits[j] = {joint.minValue, joint.maxValue};
 	}
 
-	Subspace subspace {request.start, request.constraints, jointLimits, 0};
+	Subspace subspace {request.start, request.constraints, jointLimits, request.randomSeed};
 
 	auto checkState = [&](const Waypoint& jointValues){
 		for (size_t j = 0; j < numJoints; j++) {
@@ -191,6 +193,11 @@ int main(int argc, char* argv[]) {
 		return true;
 	};
 
+    size_t sweepingPhantomCollisions = 0;
+    size_t samplingMissedCollisions = 0;
+    size_t correctResults = 0;
+    valarray<double> evaluationStepSize = expand(request.maxStepSize.evaluationSampling);
+
 	auto checkSubspaceTransition = [&](const Waypoint& params0, const Waypoint& params1) {
 		auto jointValues0 = subspace.unproject(params0);
 		auto jointValues1 = subspace.unproject(params1);
@@ -202,6 +209,9 @@ int main(int argc, char* argv[]) {
 				return false;
 			}
 		}
+
+        bool initialResult = true;
+        bool evaluationResult = true;
 
 		Path waypoints = subdivide(jointValues0, jointValues1, maxStepSize);
 
@@ -219,7 +229,8 @@ int main(int argc, char* argv[]) {
 						);
 					}
 					if (!sceneGraph.isCollisionFree(request.debugLevel)) {
-						return false;
+						initialResult = false;
+                        break;
 					}
 				}
 			}
@@ -231,16 +242,55 @@ int main(int argc, char* argv[]) {
 						joints[j]->update(sweepMode, waypoints[order[k]][j]);
 					}
 					if (!sceneGraph.isCollisionFree(request.debugLevel)) {
-						return false;
+                        initialResult = false;
+						break;
 					}
 				}
 			}
 		}
-		return true;
+
+        if (request.evaluateTransitionChecks){
+            Path waypoints = subdivide(jointValues0, jointValues1, evaluationStepSize);
+            auto order = divideAndConquerShuffle(waypoints.size());
+            for (size_t k = 1; k < waypoints.size(); k++) {
+                for (size_t j = 0; j < numJoints; j++) {
+                    joints[j]->update(sweepMode, waypoints[order[k]][j]);
+                }
+                if (!sceneGraph.isCollisionFree(request.debugLevel)) {
+                    evaluationResult = false;
+                    break;
+                }
+            }
+
+            if (
+                (
+                    request.motionTest == api::MotionTest::cartesianLinearSweep
+                    || request.motionTest == api::MotionTest::jointCuboidSweep
+                )
+                && initialResult == false
+                && evaluationResult == true
+            ) {
+                sweepingPhantomCollisions++;
+            }
+            else if (
+                request.motionTest == api::MotionTest::sampling
+                && initialResult == true
+                && evaluationResult == false
+            ) {
+                samplingMissedCollisions++;
+            }
+            else if (initialResult == evaluationResult){
+                correctResults++;
+            }
+        }
+
+		return initialResult;
 	};
 
-	const string actuate = "6";
-	const string range = "0.05";
+	const string actuate = std::to_string(request.RRTMaxActuatedJoints);
+	const string range = std::to_string(request.RRTRange);
+    const string addAABB = std::to_string(request.addAABBCorners);
+    optimizeConvexHulls = request.optimizeConvexHulls;
 
 	// checkTransition(request.start, request.targetPool[0]);
 
@@ -251,7 +301,7 @@ int main(int argc, char* argv[]) {
 		.checkState = checkSubspaceState,
 		.checkTransition = checkSubspaceTransition,
 		.planner = "RRTConnectCustom",
-		.plannerParams = {{"range", range}, {"max_actuated_params", actuate}},
+		.plannerParams = {{"range", range}, {"max_actuated_params", actuate}, {"add_aabb_corners", addAABB}},
 		.maxChecks = request.maxChecks,
 		.timeout = request.timeout,
 		.verbose = true
@@ -308,6 +358,14 @@ int main(int argc, char* argv[]) {
 	}
 
 	api::saveScene(outputFileName, apiScene, request.debugLevel > 0);
+
+    if (request.evaluateTransitionChecks){
+        std::cout << "\n" << correctResults << " correct results\n";
+        std::cout << "\nsampling missed " << samplingMissedCollisions << " collisions (" 
+            << ((100.0 * samplingMissedCollisions) / (samplingMissedCollisions + correctResults)) << " %)\n";
+        std::cout << "\nsweeping reported " << sweepingPhantomCollisions << " collisions falsely ("
+            << ((100.0 * sweepingPhantomCollisions) / (sweepingPhantomCollisions + correctResults)) << " %)\n";
+    }
 
 	return EXIT_SUCCESS;
 }

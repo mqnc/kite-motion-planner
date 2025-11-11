@@ -36,7 +36,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 	sampling,
 	cartesianLinearSweep,
 	jointCuboidSweep,
-	jointCuboidSubdivision
+	jointCuboidSubdivision,
+    evaluationSampling
 );
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
@@ -52,7 +53,13 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     simplify,
     tighten,
     smoothen,
-	debugLevel
+    RRTRange,
+    RRTMaxActuatedJoints,
+    optimizeConvexHulls,
+    addAABBCorners,
+    randomSeed,
+	debugLevel,
+    evaluateTransitionChecks
 );
 
 PlanningRequest loadRequest(const std::string& file) {

@@ -39,6 +39,7 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/util/String.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
+#include <bitset>
 
 ompl::geometric::RRTConnectCustom::RRTConnectCustom( const base::SpaceInformationPtr& spaceInformation, bool addIntermediateStates)
 	: base::Planner(spaceInformation, addIntermediateStates ? "RRTConnectIntermediate" : "RRTConnectCustom")
@@ -51,6 +52,8 @@ ompl::geometric::RRTConnectCustom::RRTConnectCustom( const base::SpaceInformatio
 		&RRTConnectCustom::getIntermediateStates, "0,1");
 	Planner::declareParam<size_t>("max_actuated_params", this, &RRTConnectCustom::setMaxActuatedParams,
 		&RRTConnectCustom::getMaxActuatedParams, "0:1:1000");
+    Planner::declareParam<size_t>("add_aabb_corners", this, &RRTConnectCustom::setAddAABBCorners,
+		&RRTConnectCustom::getAddAABBCorners, "0,1");
 
 
 	connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
@@ -141,13 +144,18 @@ ompl::geometric::RRTConnectCustom::GrowProgress ompl::geometric::RRTConnectCusto
 	// std::cout << "nearest1: "; print(nearestMotion->state);
 	// std::cout << "dstate1: "; print(dstate);
 
+    std::vector<uint8_t> actuated;
+	auto nDims = si_->getStateDimension();
+    actuated.reserve(nDims);
+
+    using VectorState = ompl::base::RealVectorStateSpace::StateType;
+
 	if (maxActuatedParams_ > 0) {
-		auto nDims = si_->getStateDimension();
 		if (maxActuatedParams_ < nDims) {
 			auto k = maxActuatedParams_;
-			const auto* start = nearestMotion->state->as<ompl::base::RealVectorStateSpace::StateType>();
-			auto* target = dstate->as<ompl::base::RealVectorStateSpace::StateType>();
-			auto* tgix_rv = treeGrowingInfo.xstate->as<ompl::base::RealVectorStateSpace::StateType>();
+			const auto* start = nearestMotion->state->as<VectorState>();
+			auto* target = dstate->as<VectorState>();
+			auto* tgix_rv = treeGrowingInfo.xstate->as<VectorState>();
 
 			std::vector<double> deltae;
 			deltae.reserve(nDims);
@@ -166,17 +174,25 @@ ompl::geometric::RRTConnectCustom::GrowProgress ompl::geometric::RRTConnectCusto
 
 			for (size_t i = 0; i < nDims; ++i) {
 				double delta = abs((*target)[i] - (*start)[i]);
-				if (delta < limit && delta > 1e-9) {
+				if (delta < limit && delta > 1e-9) { // we need to reach the target if the step is close to zero
 					(*tgix_rv)[i] = (*start)[i];
 					reach = false;
 				}
 				else{
 					(*tgix_rv)[i] = (*target)[i];
+                    if (delta > 1e-9){
+                        actuated.push_back(i);
+                    }
 				}
 			}
 			dstate = tgix_rv;
 		}
 	}
+    else{
+        for (size_t i = 0; i < nDims; i++) {
+            actuated.push_back(i);
+        }        
+    }
 
 	// std::cout << "random2: "; print(randomMotion->state);
 	// std::cout << "nearest2: "; print(nearestMotion->state);
@@ -202,6 +218,53 @@ ompl::geometric::RRTConnectCustom::GrowProgress ompl::geometric::RRTConnectCusto
 
 	if (!validMotion)
 		return TRAPPED;
+
+    if (addAABBCorners_ > 0)
+    {
+        // the user must guarantee that the whole AABB of the tested motion is valid
+        // we can then add more corners from that AABB
+        const auto* start = nearestMotion->state->as<VectorState>();
+        auto* target = dstate->as<VectorState>();
+
+        std::vector<size_t> combinations; // bit==0 in a combination: take value from start, 1: from target
+        size_t count = (1UL << actuated.size()) - 1; // we don't add the start state 00000000
+        combinations.reserve(count);
+
+        for(size_t iCombi=1; iCombi < count+1; iCombi++) {
+            size_t combination = 0;
+            for(uint8_t iActuatedBit=0; iActuatedBit<actuated.size(); iActuatedBit++) {
+                if((iCombi & (1 << iActuatedBit)) != 0) {
+                    combination += 1 << actuated[iActuatedBit];
+                }
+            }
+            combinations.push_back(combination);
+        }
+
+        if (addAABBCorners_ < count){
+            static std::default_random_engine rng{addAABBCorners_}; // abuse the number of corners to add as random seed
+            std::shuffle(combinations.begin(), combinations.end(), rng);
+        }
+
+        for (size_t iCombi=0; iCombi < std::min(addAABBCorners_, count); iCombi++){
+            size_t combination = combinations[iCombi];
+            VectorState* aabbCorner = si_->allocState()->as<VectorState>();
+
+            for (size_t i=0; i < nDims; i++){
+                if ((combination & (1 << i)) != 0) {
+                    (*aabbCorner)[i] = (*target)[i];
+                }
+                else{
+                    (*aabbCorner)[i] = (*start)[i];
+                }
+            }
+
+            auto* motion = new Motion;
+            motion->state = aabbCorner;
+            motion->parent = nearestMotion;
+            motion->root = nearestMotion->root;
+            tree->add(motion);
+        }
+    }
 
 	if (addIntermediateStates_)
 	{

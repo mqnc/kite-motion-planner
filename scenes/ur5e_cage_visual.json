@@ -1,0 +1,317 @@
+{
+    "models": {
+        "ur5e": {
+            "kind": "robot",
+            "links": {
+                "base": {
+                    "parent": "ROOT",
+                    "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "baseCollision" ]
+                },
+                "shoulder": {
+                    "parent": "base",
+                    "pose": { "dh": { "theta": { "joint": "base" }, "a": 0, "s": 0.1625, "alpha": 1.57079632679 } }
+                },
+                "upperArm": {
+                    "parent": "shoulder",
+                    "pose": { "dh": { "theta": { "joint": "shoulder" }, "a": -0.425, "s": 0, "alpha": 0 } },
+                    "parts": [ "upperArmCollision" ]
+                },
+                "forearm": {
+                    "parent": "upperArm",
+                    "pose": { "dh": { "theta": { "joint": "elbow" }, "a": -0.3922, "s": 0, "alpha": 0 } },
+                    "parts": [ "forearmCollision" ]
+                },
+                "wrist1": {
+                    "parent": "forearm",
+                    "pose": { "dh": { "theta": { "joint": "wrist1" }, "a": 0, "s": 0.1333, "alpha": 1.57079632679 } },
+                    "parts": [ "wrist1Collision" ]
+                },
+                "wrist2": {
+                    "parent": "wrist1",
+                    "pose": { "dh": { "theta": { "joint": "wrist2" }, "a": 0, "s": 0.0997, "alpha": -1.57079632679 } },
+                    "parts": [ "wrist2Collision" ]
+                },
+                "wrist3": {
+                    "parent": "wrist2",
+                    "pose": { "dh": { "theta": { "joint": "wrist3" }, "a": 0, "s": 0.0996, "alpha": 0 } },
+                    "parts": [ "wrist3Collision" ]
+                },
+                "payload": {
+                    "parent": "wrist3",
+                    "pose": { "dh": { "theta": 0, "a": 0, "s": 0.01, "alpha": 0 } },
+                    "parts": [ "beamCollision" ]
+                }
+            },
+            "partModels": {
+                "baseCollision": { "shapes": {
+                        "baseShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0, 0 ], [ 0, 0, 0.18 ] ],
+                            "radius": 0.078,
+                            "margin": 0.0
+                        }
+                    } },
+                "upperArmCollision": { "shapes": {
+                        "shoulderShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.425, 0, 0 ], [ 0.417, 0, 0.16 ] ],
+                            "radius": 0.07,
+                            "margin": 0.0
+                        },
+                        "upperArmShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.425, 0, 0.138 ], [ 0, 0, 0.138 ] ],
+                            "radius": 0.07,
+                            "margin": 0.0
+                        },
+                        "elbowShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.008, 0, 0.16 ], [ 0, 0, 0.03 ] ],
+                            "radius": 0.07,
+                            "margin": 0.0
+                        }
+                    } },
+                "forearmCollision": { "shapes": {
+                        "forearmShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.367, 0, 0.007 ], [ 0, 0, 0.007 ] ],
+                            "radius": 0.05,
+                            "margin": 0.0
+                        },
+                        "forearmToWristShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0, -0.023 ], [ 0, 0, 0.133 ] ],
+                            "radius": 0.043,
+                            "margin": 0.0
+                        }
+                    } },
+                "wrist1Collision": { "shapes": {
+                        "wrist1Shape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, -0.002, -0.028 ], [ 0, 0, 0.1 ] ],
+                            "radius": 0.043,
+                            "margin": 0.0
+                        }
+                    } },
+                "wrist2Collision": { "shapes": {
+                        "wrist2Shape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0.002, -0.024 ], [ 0, 0, 0.027 ] ],
+                            "radius": 0.045,
+                            "margin": 0.0
+                        }
+                    } },
+                "wrist3Collision": { "shapes": {
+                        "wrist3Shape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0, -0.031 ] ],
+                            "radius": 0.045,
+                            "margin": 0.0
+                        }
+                    } },
+                "beamCollision": { "shapes": {
+                        "beamShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ -0.5, 0, 0 ], [ 0.5, 0, 0 ] ],
+                            "radius": 0.0142,
+                            "margin": 0.0
+                        }
+                    },
+                    "visuals": "../../models/alubeam_highlight.glb"
+                }
+            },
+
+            "joints": {
+                "base": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "shoulder": {
+                    "minValue": -4.7123889803,
+                    "maxValue": 1.5707963267,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "elbow": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "wrist1": {
+                    "minValue": -4.7123889803,
+                    "maxValue": 1.5707963267,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "wrist2": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "wrist3": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                }
+            },
+            "collisionIgnoreGroups": {
+                "shoulder": [ "base", "upperArm" ],
+                "armParts": [ "upperArm", "forearm" ],
+                "wrist1": [ "forearm", "wrist1", "wrist2" ],
+                "wrist2": [ "wrist1", "wrist2", "wrist3" ],
+                "payload": [ "wrist3", "payload" ]
+            },
+            "constraints": { },
+            "visuals": "../../models/ur5e.glb"
+        },
+
+        "aluBeam": {
+            "kind": "rigidBody",
+            "shapes": {
+                "beam": {
+                    "kind": "orangeNet",
+                    "points": [ [ -0.5, 0, 0 ], [ 0.5, 0, 0 ] ],
+                    "radius": 0.0142,
+                    "margin": 0.0
+                }
+            },
+            "visuals": "../../models/alubeam.glb"
+        },
+
+        "aluPillar": {
+            "kind": "rigidBody",
+            "shapes": {
+                "beam": {
+                    "kind": "orangeNet",
+                    "points": [ [ 0, 0, 0 ], [ 0, 0, 0.6 ] ],
+                    "radius": 0.0142,
+                    "margin": 0.0
+                }
+            },
+            "visuals": "../../models/alupillar.glb"
+        },
+
+        "fundament": {
+            "kind": "rigidBody",
+            "shapes": {
+                "groundShape": {
+                    "kind": "box",
+                    "pose": { "xyz": [ 0, 0, -0.0751 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "size": [ 2.201, 2.201, 0.152 ],
+                    "margin": 0
+                }
+            },
+            "visuals": "../../models/fundament.glb"
+        }
+
+    },
+
+    "objects": {
+        "fundament": {
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+            "model": "fundament"
+        },
+
+        "robot": {
+            "model": "ur5e",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0.70710678118, 0.70710678118 ] },
+            "jointValues": {
+                "base": 1.34691,
+                "shoulder": -0.937951,
+                "elbow": 1.48945,
+                "wrist1": -0.551496,
+                "wrist2": 1.34691,
+                "wrist3": 0.0
+            }
+        },
+
+        "robot2": {
+            "model": "ur5e",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0.70710678118, 0.70710678118 ] },
+            "jointValues": {
+                "base": -2.06621,
+                "shoulder": -1.81854,
+                "elbow": 1.35552,
+                "wrist1": 0.463017,
+                "wrist2": 1.07539,
+                "wrist3": 0.0
+            }
+        },
+
+        "pillar1": {
+            "model": "aluPillar",
+            "parent": "WORLD",
+            "pose": { "xyz": [ -0.39, -0.39, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+        },
+
+        "pillar2": {
+            "model": "aluPillar",
+            "parent": "WORLD",
+            "pose": { "xyz": [ -0.39, 0.39, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+        },
+
+        "pillar3": {
+            "model": "aluPillar",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0.39, -0.39, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+        },
+
+        "pillar4": {
+            "model": "aluPillar",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0.39, 0.39, 0 ], "qxyzw": [ 0, 0, 0, 1 ] }
+        },
+
+        "bridge1": {
+            "model": "aluBeam",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, -0.39, 0.61 ], "qxyzw": [ 0, 0, 0, 1 ] }
+        },
+
+        "bridge2": {
+            "model": "aluBeam",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, 0.39, 0.61 ], "qxyzw": [ 0, 0, 0, 1 ] }
+        },
+
+        "bridge3": {
+            "model": "aluBeam",
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0.39, 0, 0.63 ], "qxyzw": [ 0, 0, 0.70710678118, 0.70710678118 ] }
+        }
+    },
+
+    "collisionIgnoreGroups": {
+        "world": ["fundament", "pillar1", "pillar2", "pillar3", "pillar4", "bridge1", "bridge2", "bridge3"],
+        "mounting": [ "fundament", "robot.base" ]
+    }
+
+}
+

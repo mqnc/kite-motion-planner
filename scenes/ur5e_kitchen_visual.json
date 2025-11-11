@@ -1,0 +1,366 @@
+{
+    "models": {
+        "ur5e": {
+            "kind": "robot",
+            "links": {
+                "base": {
+                    "parent": "ROOT",
+                    "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+                    "parts": [ "baseCollision" ]
+                },
+                "shoulder": {
+                    "parent": "base",
+                    "pose": { "dh": { "theta": { "joint": "base" }, "a": 0, "s": 0.1625, "alpha": 1.57079632679 } }
+                },
+                "upperArm": {
+                    "parent": "shoulder",
+                    "pose": { "dh": { "theta": { "joint": "shoulder" }, "a": -0.425, "s": 0, "alpha": 0 } },
+                    "parts": [ "upperArmCollision" ]
+                },
+                "forearm": {
+                    "parent": "upperArm",
+                    "pose": { "dh": { "theta": { "joint": "elbow" }, "a": -0.3922, "s": 0, "alpha": 0 } },
+                    "parts": [ "forearmCollision" ]
+                },
+                "wrist1": {
+                    "parent": "forearm",
+                    "pose": { "dh": { "theta": { "joint": "wrist1" }, "a": 0, "s": 0.1333, "alpha": 1.57079632679 } },
+                    "parts": [ "wrist1Collision" ]
+                },
+                "wrist2": {
+                    "parent": "wrist1",
+                    "pose": { "dh": { "theta": { "joint": "wrist2" }, "a": 0, "s": 0.0997, "alpha": -1.57079632679 } },
+                    "parts": [ "wrist2Collision" ]
+                },
+                "wrist3": {
+                    "parent": "wrist2",
+                    "pose": { "dh": { "theta": { "joint": "wrist3" }, "a": 0, "s": 0.0996, "alpha": 0 } },
+                    "parts": [ "wrist3Collision" ]
+                }
+            },
+            "partModels": {
+                "baseCollision": { "shapes": {
+                        "baseShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0, 0 ], [ 0, 0, 0.18 ] ],
+                            "radius": 0.078,
+                            "margin": 0.0
+                        }
+                    } },
+                "upperArmCollision": { "shapes": {
+                        "shoulderShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.425, 0, 0 ], [ 0.417, 0, 0.16 ] ],
+                            "radius": 0.07,
+                            "margin": 0.0
+                        },
+                        "upperArmShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.425, 0, 0.138 ], [ 0, 0, 0.138 ] ],
+                            "radius": 0.07,
+                            "margin": 0.0
+                        },
+                        "elbowShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.008, 0, 0.16 ], [ 0, 0, 0.03 ] ],
+                            "radius": 0.07,
+                            "margin": 0.0
+                        }
+                    } },
+                "forearmCollision": { "shapes": {
+                        "forearmShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0.367, 0, 0.007 ], [ 0, 0, 0.007 ] ],
+                            "radius": 0.05,
+                            "margin": 0.0
+                        },
+                        "forearmToWristShape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0, -0.023 ], [ 0, 0, 0.133 ] ],
+                            "radius": 0.043,
+                            "margin": 0.0
+                        }
+                    } },
+                "wrist1Collision": { "shapes": {
+                        "wrist1Shape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, -0.002, -0.028 ], [ 0, 0, 0.1 ] ],
+                            "radius": 0.043,
+                            "margin": 0.0
+                        }
+                    } },
+                "wrist2Collision": { "shapes": {
+                        "wrist2Shape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0.002, -0.024 ], [ 0, 0, 0.027 ] ],
+                            "radius": 0.045,
+                            "margin": 0.0
+                        }
+                    } },
+                "wrist3Collision": { "shapes": {
+                        "wrist3Shape": {
+                            "kind": "orangeNet",
+                            "points": [ [ 0, 0, -0.031 ] ],
+                            "radius": 0.045,
+                            "margin": 0.0
+                        }
+                    } }
+            },
+
+            "joints": {
+                "base": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "shoulder": {
+                    "minValue": -4.7123889803,
+                    "maxValue": 1.5707963267,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "elbow": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "wrist1": {
+                    "minValue": -4.7123889803,
+                    "maxValue": 1.5707963267,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "wrist2": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                },
+                "wrist3": {
+                    "minValue": -3.14159265359,
+                    "maxValue": 3.14159265359,
+                    "maxVelocity": 1,
+                    "maxAcceleration": 1,
+                    "maxDeceleration": 5,
+                    "maxJerk": 10,
+                    "maxEffort": 10
+                }
+            },
+            "collisionIgnoreGroups": {
+                "shoulder": [ "base", "upperArm" ],
+                "armParts": [ "upperArm", "forearm" ],
+                "wrist1": [ "forearm", "wrist1", "wrist2" ],
+                "wrist2": [ "wrist1", "wrist2", "wrist3" ]
+            },
+            "constraints": { },
+            "visuals": "../../models/ur5e.glb"
+        },
+
+        "kitchen": {
+            "kind": "rigidBody",
+            "shapes": {
+                "box1": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.6894337935708945, 0.5729391167678022, 0.5382063376344938 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.8187849364915697, 1.6345486224105679, 0.8858571500008691 ],
+                    "margin": 0.0
+                },
+                "box2": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.6845634562544483, -0.646311760239041, 0.9150549195463531 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.82, 0.84, 0.12061059048086463 ],
+                    "margin": 0.0
+                },
+                "box3": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.6871736496002238, -0.6563205534566071, 0.15280664529437643 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.82, 0.84, 0.12 ],
+                    "margin": 0.0
+                },
+                "box4": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 1.0582677848122897, -0.6613612475517066, 0.5457881399454235 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.0871593886626663, 0.8377577611191458, 0.8637439058081154 ],
+                    "margin": 0.0
+                },
+                "box5": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.6875533949577539, -0.6755325653487552, 0.5598645521098919 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.84, 0.82, 0.07454802110178813 ],
+                    "margin": 0.0
+                },
+                "box6": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.017348637120900623, -0.6606453271209789, 0.458030261751029 ],
+                        "qxyzw": [ 0.0, -0.29388907400283176, 0.0, 0.8742057152627414 ]
+                    },
+                    "size": [ 0.05, 0.8357390087753183, 0.697616530137421 ],
+                    "margin": 0.0
+                },
+                "box7": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.688393119458711, -1.0506848548425685, 0.5308042433005179 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.8321484327821072, 0.054687363872066276, 0.8928290577153473 ],
+                    "margin": 0.0
+                },
+                "box8": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.6877999175912237, -0.2766230065654334, 0.5259987293846617 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.83, 0.05, 0.89 ],
+                    "margin": 0.0
+                },
+                "box9": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.7271966579643254, -0.23139644965978967, 1.453848955492781 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.76, 1.6842746953522492, 0.03564496576435228 ],
+                    "margin": 0.0
+                },
+                "box10": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.7133166559108837, -0.2314287969875568, 2.1369183586530616 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.76, 1.68, 0.036 ],
+                    "margin": 0.0
+                },
+                "box11": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.7218988696311771, -0.23040868096668993, 1.7766737276856506 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.76, 1.68, 0.036 ],
+                    "margin": 0.0
+                },
+                "box12": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.7215018391704413, 0.5897935209241817, 1.7967056587597807 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.7326788370302986, 0.045388156024275934, 0.726606192059477 ],
+                    "margin": 0.0
+                },
+                "box13": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.7215018391704413, -1.0525625376147814, 1.7967056587597807 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.7326788370302986, 0.045388156024275934, 0.726606192059477 ],
+                    "margin": 0.0
+                },
+                "box14": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 1.065979780397302, -0.22747100292182598, 1.7944056728094726 ],
+                        "qxyzw": [ 0.0, 0.0, 0.0, 1.0 ]
+                    },
+                    "size": [ 0.05994019842958428, 1.6771817317965374, 0.7296993680596805 ],
+                    "margin": 0.0
+                },
+                "box15": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.12, 0.3, 1.7944056728094726 ],
+                        "qxyzw": [ 0.0, 0.0, -0.28878974035105, 0.886824571486247 ]
+                    },
+                    "size": [ 0.05, 0.7464428386551035, 0.7296993680596805 ],
+                    "margin": 0.0
+                },
+                "box16": {
+                    "kind": "box",
+                    "pose": {
+                        "xyz": [ 0.08, -0.8, 1.7944056728094726 ],
+                        "qxyzw": [ 0.0, 0.0, 0.3409863720233057, 0.8675923257800012 ]
+                    },
+                    "size": [ 0.05, 0.7464428386551035, 0.7296993680596805 ],
+                    "margin": 0.0
+                }
+            }
+        }
+    },
+
+    "objects": {
+        "robot": {
+            "model": "ur5e",
+            "parent": "WORLD",
+            "pose": { "xyz": [ -0.05, -0.1, 0.9 ], "qxyzw": [ 0, 0, 0, 1 ] },
+            "jointValues": {
+                "base": -0.8,
+                "shoulder": -4,
+                "elbow": 0.92,
+                "wrist1": -3.2,
+                "wrist2": -1.5,
+                "wrist3": 0.0
+            }
+        },
+
+        "robot2": {
+            "model": "ur5e",
+            "parent": "WORLD",
+            "pose": { "xyz": [ -0.05, -0.1, 0.9 ], "qxyzw": [ 0, 0, 0, 1 ] },
+            "jointValues": {
+                "base": -0.4,
+                "shoulder": -2,
+                "elbow": -0.6,
+                "wrist1": -3.7,
+                "wrist2": -1.7,
+                "wrist3": 0.0
+            }
+        },
+
+        "kitchen": {
+            "parent": "WORLD",
+            "pose": { "xyz": [ 0, 0, 0 ], "qxyzw": [ 0, 0, 0, 1 ] },
+            "model": "kitchen"
+        }
+    },
+
+    "collisionIgnoreGroups": { }
+
+}
+

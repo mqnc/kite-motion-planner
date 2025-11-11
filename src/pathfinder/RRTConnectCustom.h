@@ -115,7 +115,18 @@ public:
 		return maxActuatedParams_;
 	}
 	
+	/** \brief You guarantee that not only the space diagonal from start to finish of a motion check is valid but the whole AABB, up to this many corners will be inserted into the tree */
+	void setAddAABBCorners(size_t addAABBCorners)
+	{
+		addAABBCorners_ = addAABBCorners;
+	}
 
+	/** \brief Get whether AABB corners of a motion check will be added to the tree */
+	size_t getAddAABBCorners() const
+	{
+		return addAABBCorners_;
+	}
+	
 	/** \brief Set a different nearest neighbors datastructure */
 	template <template <typename T> class NN>
 	void setNearestNeighbors()
@@ -211,6 +222,9 @@ protected:
 
 	/** \brief The maximum number of parameters the planner is touching per motion, 0 for all of them */
 	size_t maxActuatedParams_ {0};
+
+    /** \brief Number of AABB corners of a motion check that will be added to the tree additionally */
+    size_t addAABBCorners_ {0};
 
 	/** \brief Flag indicating whether intermediate states are added to the built tree of motions */
 	bool addIntermediateStates_;

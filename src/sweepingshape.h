@@ -10,6 +10,8 @@
 #include "LinearMath/btTransform.h"
 #include "utils/profiling.h"
 
+extern bool optimizeConvexHulls;
+
 class SweepingShape {
 
 	unique_ptr<collision::InflatedConvexHullShape> shape;
@@ -42,9 +44,11 @@ public:
 			shape->addPoint(targetPoint);
 		}
 
-		// PROFILE_RUN(convex hull optimization);
-		// newShape->optimize();
-		// PROFILE_PAUSE(convex hull optimization);
+        if (optimizeConvexHulls) {
+            PROFILE_RUN(convex hull optimization);
+            shape->optimize();
+            PROFILE_PAUSE(convex hull optimization);
+        }
 	}
 
 
@@ -73,9 +77,11 @@ public:
 				}
 			}
 
-			PROFILE_RUN(convex hull optimization);
-			newShape->optimize();
-			PROFILE_PAUSE(convex hull optimization);
+            if (optimizeConvexHulls) {
+                PROFILE_RUN(convex hull optimization);
+                newShape->optimize();
+                PROFILE_PAUSE(convex hull optimization);
+            }
 
 			shape = std::move(newShape);
 			offset.setIdentity();

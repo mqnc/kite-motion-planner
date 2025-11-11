@@ -325,7 +325,7 @@ void to_json(json& j, const ControlPoint& p) {
 void to_json(json& j, const Trajectory& t) {
 	j = {
 		{"controlPoints", t.controlPoints},
-		{"repeats", t.repeats}
+		{"repeat", t.repeat}
 	};
 }
 
@@ -339,7 +339,7 @@ void from_json(const json& j, Dict<Trajectory>& ts) {
 		if (nDims == -1) {
 			const auto [it, success] = ts.insert({key, {}});
 			auto& trajectory = it->second;
-			if (jt.contains("repeats")) { trajectory.repeats = jt.at("repeats"); }
+			if (jt.contains("repeat")) { trajectory.repeat = jt.at("repeat"); }
 			for (const auto& jcp: jcps) {
 				trajectory.controlPoints.push_back({});
 				auto& cp = trajectory.controlPoints.back();
@@ -353,7 +353,7 @@ void from_json(const json& j, Dict<Trajectory>& ts) {
 			for (int i = 0; i < nDims; i++) {
 				const auto [it, success] = ts.insert({key + "." + to_string(i), {}});
 				auto& trajectory = it->second;
-				if (jt.contains("repeats")) { trajectory.repeats = jt.at("repeats"); }
+				if (jt.contains("repeat")) { trajectory.repeat = jt.at("repeat"); }
 				for (const auto& jcp: jcps) {
 					trajectory.controlPoints.push_back({});
 					auto& cp = trajectory.controlPoints.back();
